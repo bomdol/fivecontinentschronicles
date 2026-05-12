@@ -103,6 +103,27 @@ html,body{background:#0a0a08;min-height:100vh}
 .creature-panel-en{font-size:8px;color:#4a4428;letter-spacing:0.1em;margin-top:1px}
 .creature-panel-stats{font-size:9px;color:#5a5130;margin-top:5px;line-height:1.6}
 
+/* 전투 턴 스트립 */
+.turn-strip{display:none;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px}
+.turn-strip.show{display:flex}
+.turn-card{flex-shrink:0;width:64px;opacity:0.38;transition:opacity 0.3s,border-color 0.3s;text-align:center;border:1px solid #1a1810;background:#090907}
+.turn-card.active{opacity:1;border-color:#c8b97a88}
+.turn-card.player{border-color:#2a3828}
+.turn-card.active.player{border-color:#5dcaa5}
+.turn-card.companion{border-color:#2a2845}
+.turn-card.active.companion{border-color:#8888dd}
+.turn-card.down{opacity:0.2;filter:grayscale(0.8)}
+.turn-card img{width:100%;height:72px;object-fit:cover;object-position:top center;display:block}
+.turn-card-name{font-size:8px;color:#5a5130;padding:3px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Noto Sans KR',sans-serif}
+.turn-card.active .turn-card-name{color:#c8b97a}
+.turn-card.active.player .turn-card-name{color:#5dcaa5}
+.turn-hp{height:2px;background:#1a1810;margin:0 4px 3px}
+.turn-hp-fill{height:100%;background:#5dcaa5;transition:width 0.4s}
+.turn-hp-fill.enemy{background:#e06060}
+.turn-hp-fill.comp{background:#8888dd}
+.turn-badge{font-size:7px;padding:1px 3px;background:#1a1810;color:#3a3820;display:inline-block;margin-bottom:2px;font-family:monospace}
+.turn-card.active .turn-badge{background:#c8b97a22;color:#c8b97a88}
+
 /* AI 제공자 선택 */
 .provider-tabs{display:flex;gap:6px;margin-bottom:10px}
 .ptab{padding:5px 14px;background:#141410;border:1px solid #3a3018;color:#6a6040;font-family:'Noto Sans KR',sans-serif;font-size:11px;cursor:pointer;transition:all 0.15s}
@@ -170,6 +191,9 @@ html,body{background:#0a0a08;min-height:100vh}
     </div>
   </div>
 
+  <!-- 전투 턴 스트립 -->
+  <div class="turn-strip" id="turn-strip"></div>
+
   <!-- 스토리 -->
   <div class="story-wrap">
     <div class="story-chapter" id="chapter-label">— 대기 중 —</div>
@@ -217,6 +241,7 @@ html,body{background:#0a0a08;min-height:100vh}
 <script src="lore_combat_rules.js"></script>
 <script src="lore_dnd_rules.js"></script>
 <script src="lore_jobs_levels.js"></script>
+<script src="lore_companions.js"></script>
 
 <script>
 // URL 파라미터에서 캐릭터 정보 읽기
@@ -306,6 +331,7 @@ const CHAR = {
   hp:    100, maxHp: 100,
   mp:    50,  maxMp: 50,
   status: ['정상'],
+  companions: [], // [{id, name, hp, maxHp, status:'active'|'down'|'dead'}]
 };
 // 실제 HP/MP는 lore_jobs_levels.js 로드 후 계산
 if (typeof calcMaxHp === 'function') {
@@ -396,7 +422,7 @@ async function saveGame() {
   const data = {
     character: { lang: CHAR.lang, cont: CHAR.cont, job: CHAR.job, stats: CHAR.stats },
     gameState: { hp: CHAR.hp, maxHp: CHAR.maxHp, mp: CHAR.mp, maxMp: CHAR.maxMp,
-                 level: CHAR.level, xp: CHAR.xp, status: CHAR.status },
+                 level: CHAR.level, xp: CHAR.xp, status: CHAR.status, companions: CHAR.companions },
     chapter:   document.getElementById('chapter-label').textContent,
     history:   history.slice(-10),
     savedAt:   Date.now(),
@@ -546,6 +572,8 @@ ${typeof buildDndRules === 'function' ? buildDndRules() : ''}
 
 ${typeof buildCombatRules === 'function' ? buildCombatRules() : ''}
 
+${typeof buildCompanionPrompt === 'function' ? buildCompanionPrompt(CHAR.companions) : ''}
+
 [테라 노바 생물 — 게임 마스터 참고용]
 테라 노바는 현재 네 대륙이 개척 전쟁 중인 미지의 땅으로, 아래 생물들이 서식한다.
 등장 빈도는 스토리 맥락에 따라 자유롭게 조절하되, 대륙별 연계 이벤트를 적극 활용할 것.
@@ -559,15 +587,19 @@ ${typeof buildCreatureLore === 'function' ? buildCreatureLore() : ''}
   "hp_delta": 0,
   "mp_delta": 0,
   "xp_gained": 0,
-  "creature_id": "",
+  "enemies": [],
+  "companion_recruit": "",
+  "companion_state": [],
   "status": ["상태태그"],
   "items_gained": [],
   "items_lost": []
 }
 hp_delta: 피해면 음수, 회복이면 양수. mp_delta: 스킬 사용 소모면 음수, 회복이면 양수.
 xp_gained: 전투 승리·퀘스트 완료 시 양수. 몬스터 레벨과 레벨 차 배율 적용. 비전투 시 0.
-creature_id: 현재 장면에 생물/몬스터가 등장하면 해당 ID 입력, 없으면 빈 문자열.
-사용 가능한 ID: frost_swarm, aurora_jellyfish, aurora_wolf, cryo_turtle, frost_spirit_bear, frostwhale, pyroclast_elemental, ironhide_bear, fossil_titan, bloodsnow_bear, glacier_wyrm, ice_kraken
+enemies: 현재 조우 중인 적 목록. 없거나 전투 종료 시 반드시 [].
+  각 항목: {"id":"creature_id","count":1,"level_min":2,"level_max":4}
+  count: 해당 종류의 마릿수(1~5). level_min/level_max: 레벨 범위(1~12, min≤max). 플레이어 레벨과 스토리 맥락에 맞게 설정.
+  사용 가능한 id: frost_swarm, aurora_jellyfish, aurora_wolf, cryo_turtle, frost_spirit_bear, frostwhale, pyroclast_elemental, ironhide_bear, fossil_titan, bloodsnow_bear, glacier_wyrm, ice_kraken
 
 [최종 확인] ${isKo ? '위 JSON의 모든 텍스트 값은 순수 한국어로만 작성. 한자·일본어 문자 포함 시 오답.' : `All text values in the JSON above must be in ${CHAR.lang} only.`}`;
 }
@@ -585,30 +617,165 @@ const CREATURE_IMAGES = {
   fossil_titan:       { img:'images/화석거인.png',     ko:'화석 거인',     en:'Fossil Titan' },
   bloodsnow_bear:     { img:'images/혈설곰.png',       ko:'혈설곰',        en:'Bloodsnow Bear' },
   glacier_wyrm:       { img:'images/빙혈미르.png',     ko:'빙혈 미르',     en:'Glacier Wyrm' },
+  ice_kraken:         { img:'images/빙결크라켄.png',   ko:'빙결 크라켄',   en:'Ice Kraken' },
 };
 
-function showCreaturePanel(creatureId) {
-  const panel = document.getElementById('creature-panel');
-  const info = CREATURE_IMAGES[creatureId];
-  if (!info) { panel.classList.remove('show'); return; }
+const JOB_IMAGES_GP = {
+  kn:'images/마법기사.png',   am:'images/대마법사.png',   ma:null,
+  hl:'images/성약사.png',     fb:'images/금서사용자.png', ar:'images/기갑병.png',
+  iv:'images/발명가.png',     hk:'images/해커.png',       md:'images/의무병.png',
+  nw:null,                    sw:'images/검객.png',       sc:'images/술사.png',
+  jk:'images/자객.png',       us:'images/의선.png',       dh:'images/달마내공자.png',
+  fc:'images/역장사.png',     tk:'images/염동력자.png',   jy:'images/잠영술사.png',
+  ep:'images/초능력의사.png', aw:'images/각성자.png',
+};
 
-  document.getElementById('creature-img').src = info.img;
-  document.getElementById('creature-img').alt = info.ko;
-  document.getElementById('creature-panel-name').textContent = info.ko;
-  document.getElementById('creature-panel-en').textContent = info.en;
+// 플레이어 DEX 파싱
+function getPlayerDex() {
+  const m = CHAR.stats.match(/민첩\s+(\d+)/);
+  return m ? +m[1] : 10;
+}
 
-  // CREATURES 배열에서 전투 수치 찾기
-  const cr = typeof CREATURES !== 'undefined'
-    ? CREATURES.find(c => c.id === creatureId) : null;
-  if (cr?.combat) {
-    document.getElementById('creature-panel-stats').innerHTML =
-      `Lv.${cr.level ?? '?'} ★${cr.threat ?? '?'}<br>` +
-      `HP ${cr.combat.hp} · ATK ${cr.combat.atk}<br>` +
-      `MP ${cr.combat.mp}`;
-  } else {
-    document.getElementById('creature-panel-stats').textContent = '';
+// 전투 상태
+let COMBAT_ENEMIES = []; // 현재 조우 중인 enemies (rolled)
+let COMBAT_TURN = 0;     // 현재 turn index (순환)
+
+function buildInitiativeOrder(enemies) {
+  const playerDex = getPlayerDex();
+  // 플레이어 카드
+  const participants = [{
+    type: 'player',
+    id: CHAR.job,
+    name: jobName,
+    img: JOB_IMAGES_GP[CHAR.job] || null,
+    dex: playerDex,
+    hp: CHAR.hp, maxHp: CHAR.maxHp,
+  }];
+  // 활성 동료 카드
+  CHAR.companions.forEach(comp => {
+    if (comp.status === 'dead') return;
+    const base = typeof getCompanion === 'function' ? getCompanion(comp.id) : null;
+    const dexMatch = base?.stats.match(/DEX\s+(\d+)/);
+    const compDex = dexMatch ? +dexMatch[1] : 12;
+    participants.push({
+      type: 'companion',
+      id: comp.id,
+      name: comp.name,
+      img: comp.img || null,
+      dex: compDex,
+      hp: comp.hp, maxHp: comp.maxHp,
+      status: comp.status,
+    });
+  });
+  // 적 카드 (count만큼 반복)
+  enemies.forEach(e => {
+    const cr = typeof TERRA_NOVA_CREATURES !== 'undefined'
+      ? TERRA_NOVA_CREATURES.find(c => c.id === e.id) : null;
+    const eInfo = CREATURE_IMAGES[e.id];
+    const eDex = cr ? Math.min(20, 6 + (cr.threat ?? 2) * 2) : 10;
+    const cnt = Math.min(e.count ?? 1, 5);
+    for (let i = 0; i < cnt; i++) {
+      participants.push({
+        type: 'enemy',
+        id: e.id,
+        name: eInfo ? eInfo.ko : e.id,
+        img: eInfo ? eInfo.img : null,
+        dex: eDex + Math.floor(Math.random() * 3),
+        hp: cr?.combat?.hp ?? 100, maxHp: cr?.combat?.hp ?? 100,
+        lv: e._rolled_level ?? cr?.level ?? '?',
+      });
+    }
+  });
+  // DEX 내림차순 정렬 (동점: 플레이어 → 동료 → 적)
+  const typeOrder = { player: 0, companion: 1, enemy: 2 };
+  participants.sort((a, b) => b.dex - a.dex || (typeOrder[a.type] ?? 2) - (typeOrder[b.type] ?? 2));
+  return participants;
+}
+
+let _stripOrder = []; // 전투 중 initiative 순서 고정
+
+function renderTurnStrip(enemies) {
+  const strip = document.getElementById('turn-strip');
+  if (!enemies || enemies.length === 0) {
+    strip.classList.remove('show');
+    if (COMBAT_ENEMIES.length > 0) { COMBAT_TURN = 0; _stripOrder = []; } // 전투 종료
+    COMBAT_ENEMIES = [];
+    return;
   }
+  // 새 전투 시작 → 순서 재생성
+  if (COMBAT_ENEMIES.length === 0) { COMBAT_TURN = 0; _stripOrder = buildInitiativeOrder(enemies); }
+  COMBAT_ENEMIES = enemies;
+  // 플레이어 HP 갱신
+  const playerCard = _stripOrder.find(p => p.type === 'player');
+  if (playerCard) { playerCard.hp = CHAR.hp; playerCard.maxHp = CHAR.maxHp; }
+
+  const activeIdx = COMBAT_TURN % _stripOrder.length;
+  strip.innerHTML = _stripOrder.map((p, i) => {
+    const isActive = i === activeIdx;
+    const hpPct = p.maxHp > 0 ? Math.round((p.hp / p.maxHp) * 100) : 0;
+    const isPlayer = p.type === 'player';
+    const isComp = p.type === 'companion';
+    const isEnemy = p.type === 'enemy';
+    const isDown = p.status === 'down';
+    let cls = 'turn-card';
+    if (isPlayer) cls += ' player';
+    if (isComp)   cls += ' companion';
+    if (isActive && !isDown) cls += ' active';
+    if (isDown)   cls += ' down';
+    const imgHtml = p.img
+      ? `<img src="${p.img}" alt="${p.name}" onerror="this.style.display='none'">`
+      : `<div style="height:72px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#3a3218">${isPlayer ? '⚔' : isComp ? '✦' : '☠'}</div>`;
+    const badge = isPlayer ? `Lv.${CHAR.level}` : isComp ? (isDown ? 'DOWN' : '동료') : `Lv.${p.lv ?? '?'}`;
+    const hpFillCls = isEnemy ? ' enemy' : isComp ? ' comp' : '';
+    return `<div class="${cls}"><div style="overflow:hidden;height:72px">${imgHtml}</div><div class="turn-badge">${badge}</div><div class="turn-hp"><div class="turn-hp-fill${hpFillCls}" style="width:${hpPct}%"></div></div><div class="turn-card-name">${p.name}</div></div>`;
+  }).join('');
+  strip.classList.add('show');
+  COMBAT_TURN++;
+}
+
+function showEnemyPanel(enemies) {
+  const panel = document.getElementById('creature-panel');
+  if (!enemies || enemies.length === 0) { panel.classList.remove('show'); return; }
+
+  // Primary: highest-threat creature
+  const crData = id => typeof TERRA_NOVA_CREATURES !== 'undefined'
+    ? TERRA_NOVA_CREATURES.find(c => c.id === id) : null;
+  let primary = enemies[0];
+  for (const e of enemies) {
+    const a = crData(e.id), b = crData(primary.id);
+    if (a && b && (a.threat ?? 0) > (b.threat ?? 0)) primary = e;
+  }
+
+  const pInfo = CREATURE_IMAGES[primary.id];
+  if (!pInfo) { panel.classList.remove('show'); return; }
+
+  document.getElementById('creature-img').src = pInfo.img;
+  document.getElementById('creature-img').alt = pInfo.ko;
+  document.getElementById('creature-panel-name').textContent =
+    pInfo.ko + (primary.count > 1 ? ` ×${primary.count}` : '');
+  document.getElementById('creature-panel-en').textContent = pInfo.en;
+
+  // Stats section: list all enemies
+  let statsHtml = '';
+  enemies.forEach((e, i) => {
+    const eInfo = CREATURE_IMAGES[e.id];
+    const cr = crData(e.id);
+    const lv = e._rolled_level ?? cr?.level ?? '?';
+    const countStr = (e.count ?? 1) > 1 ? ` ×${e.count}` : '';
+    const nameStr = (eInfo?.ko || e.id) + countStr;
+    if (i > 0) statsHtml += `<div style="border-top:1px solid #1a1810;margin-top:4px;padding-top:4px">${nameStr}<br>`;
+    statsHtml += `Lv.${lv} ★${cr?.threat ?? '?'}`;
+    if (cr?.combat) statsHtml += `<br>HP ${cr.combat.hp} · ATK ${cr.combat.atk}`;
+    if (i > 0) statsHtml += '</div>';
+    else statsHtml += '<br>';
+  });
+  document.getElementById('creature-panel-stats').innerHTML = statsHtml;
   panel.classList.add('show');
+}
+
+function showCreaturePanel(idOrEmpty) {
+  if (!idOrEmpty) { showEnemyPanel([]); return; }
+  showEnemyPanel([{id: idOrEmpty, count: 1, level_min: 1, level_max: 1}]);
 }
 
 let history = [];
@@ -798,6 +965,51 @@ function applyResult(p, userMsg) {
       }, 100);
     }
   }
+  // enemies 배열(신규) 또는 creature_id(구버전 호환) 처리
+  const rawEnemies = (p.enemies && p.enemies.length > 0) ? p.enemies
+    : (p.creature_id ? [{id: p.creature_id, count: 1, level_min: 1, level_max: 1}] : []);
+  const rolledEnemies = rawEnemies.map(e => {
+    const min = e.level_min ?? 1;
+    const max = e.level_max ?? min;
+    return {...e, _rolled_level: min + Math.floor(Math.random() * (max - min + 1))};
+  });
+
+  // 동료 영입
+  if (p.companion_recruit && typeof getCompanion === 'function') {
+    const base = getCompanion(p.companion_recruit);
+    if (base && !CHAR.companions.find(c => c.id === base.id)) {
+      CHAR.companions.push({
+        id: base.id, name: base.name.ko, img: base.img,
+        hp: base.maxHp, maxHp: base.maxHp, maxMp: base.maxMp,
+        status: 'active',
+      });
+      setTimeout(() => {
+        const el = document.getElementById('story-text');
+        const notice = document.createElement('p');
+        notice.style.cssText = 'color:#5dcaa5;border:1px solid #5dcaa544;padding:8px;margin-top:12px;font-family:Noto Sans KR,sans-serif;font-size:12px;letter-spacing:0.1em';
+        notice.textContent = `✦ ${base.name.ko}이(가) 동료로 합류했습니다!`;
+        el.appendChild(notice);
+      }, 100);
+    }
+  }
+  // 동료 상태 갱신
+  if (p.companion_state?.length) {
+    p.companion_state.forEach(cs => {
+      const comp = CHAR.companions.find(c => c.id === cs.id);
+      if (!comp) return;
+      if (comp.status === 'dead') return;
+      if (cs.hp_delta) comp.hp = Math.max(0, Math.min(comp.maxHp, comp.hp + cs.hp_delta));
+      if (cs.status) {
+        if (comp.status === 'down' && cs.status === 'dead') comp.status = 'dead';
+        else if (cs.status !== 'dead') comp.status = cs.status;
+      }
+    });
+    // 전투 종료 시 down → 1HP로 회복
+    if (!rolledEnemies.length) {
+      CHAR.companions.forEach(c => { if (c.status === 'down') { c.hp = 1; c.status = 'active'; } });
+    }
+  }
+
   updateHUD();
   if (p.status?.length) {
     CHAR.status = p.status;
@@ -805,7 +1017,8 @@ function applyResult(p, userMsg) {
   }
   if(p.chapter) document.getElementById('chapter-label').textContent = p.chapter;
 
-  showCreaturePanel(p.creature_id || '');
+  showEnemyPanel(rolledEnemies);
+  renderTurnStrip(rolledEnemies);
 
   const el = document.getElementById('story-text');
   el.innerHTML = (p.story||'').split('\n\n').map(para=>`<p>${para}</p>`).join('');
@@ -902,6 +1115,7 @@ function applyResume(save) {
   CHAR.maxMp  = gs.maxMp  ?? (typeof calcMaxMp === 'function' ? calcMaxMp(CHAR.job, CHAR.level, CHAR.stats) : 50);
   CHAR.mp     = gs.mp     ?? CHAR.maxMp;
   CHAR.status = gs.status ?? ['정상'];
+  CHAR.companions = gs.companions ?? [];
   history     = save.history || [];
   updateHUD();
   document.getElementById('status-tags').innerHTML =

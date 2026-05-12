@@ -107,6 +107,17 @@ html,body{background:#0a0a08;min-height:100vh}
 .tag-bon{font-size:9px;padding:1px 5px;background:#0a0a1f;border:1px solid #2a2a4a;color:#8888dd;font-family:'Noto Sans KR',sans-serif;white-space:nowrap}
 .summary-box{border:1px solid #2a2518;padding:10px 14px;background:#0e0e0b;margin-bottom:12px;font-family:'Noto Sans KR',sans-serif;font-size:11px;color:#8a7e52;line-height:1.85}
 .summary-box b{color:#e8d48a;font-family:'Noto Serif KR',serif}
+/* 직업 선택 프리뷰 */
+.job-preview{border:1px solid #c8b97a33;background:#0e0e0b;margin-bottom:14px;display:flex;overflow:hidden;animation:jpfade 0.18s ease}
+@keyframes jpfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.jp-img{width:110px;flex-shrink:0;background:#080806;display:flex;align-items:center;justify-content:center;min-height:150px;border-right:1px solid #1a1810;overflow:hidden}
+.jp-asc{font-family:'Courier New',monospace;font-size:11px;color:#4a4228;text-align:center;line-height:1.5}
+.jp-info{padding:14px 12px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:0}
+.jp-role-tag{font-size:9px;letter-spacing:0.25em;color:#5a5130;font-family:'Noto Sans KR',sans-serif}
+.jp-name{font-size:15px;font-weight:900;color:#e8d48a;letter-spacing:0.1em}
+.jp-desc{font-size:11px;color:#8a7e52;line-height:1.65;font-family:'Noto Sans KR',sans-serif;margin-top:2px}
+.jp-topstats{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.jp-stat-tag{font-size:9px;padding:1px 5px;border:1px solid #2a2518;color:#6a6040;font-family:'Noto Sans KR',sans-serif}
 </style>
 </head>
 <body>
@@ -178,6 +189,18 @@ const JOBS={
     {id:'aw',role:{ko:'특수 — 희귀',en:'Special',zh:'特殊',ja:'特殊',vi:'Đặc biệt'},name:{ko:'각성자',en:'Awakened',zh:'觉醒者',ja:'覚醒者',vi:'Người thức tỉnh'},sp:1,asc:' ◎!\n/!!\\\n/ \\',desc:{ko:'새사람 프로젝트 탈출체.',en:'Escaped subject of the New Human Project.',zh:'新人类计划的逃脱实验体。',ja:'新人間計画からの逃亡実験体。',vi:'Thực thể thoát khỏi Dự án Con Người Mới.'},s:{근력:60,민첩:80,지력:70,지혜:65,체력:70,매력:25}},
   ],
 };
+const JOB_IMAGES={
+  kn:'images/마법기사.png',   am:'images/대마법사.png',
+  ma:null,                    hl:'images/성약사.png',
+  fb:'images/금서사용자.png', ar:'images/기갑병.png',
+  iv:'images/발명가.png',     hk:'images/해커.png',
+  md:'images/의무병.png',     nw:null,
+  sw:'images/검객.png',       sc:'images/술사.png',
+  jk:'images/자객.png',       us:'images/의선.png',
+  dh:'images/달마내공자.png', fc:'images/역장사.png',
+  tk:'images/염동력자.png',   jy:'images/잠영술사.png',
+  ep:'images/초능력의사.png', aw:'images/각성자.png',
+};
 const SN=['근력','민첩','체력','지력','지혜','매력'];
 const SL={근력:'STR',민첩:'DEX',체력:'CON',지력:'INT',지혜:'WIS',매력:'CHA'};
 const INIT_POOL=6,MAX_D=2;
@@ -203,12 +226,22 @@ function render(){
     CONTS.forEach(c=>{h+=`<div class="card${G.cont===c.id?' sel':''}" data-cont="${c.id}"><div class="ci">${c.icon}</div><div class="cn">${L(c.name)}</div><div class="cf">${c.flavor}</div><div class="cd">${L(c.desc)}</div><div class="ctags">${L(c.tags).map(t=>`<span class="ctag">${t}</span>`).join('')}</div></div>`;});
     h+=`</div><div class="nav"><button class="nbtn" data-go="1">${t.back}</button><button class="nbtn p${!G.cont?' off':''}" data-go="3">${t.next}</button></div></div>`;
   } else if(G.screen===3){
+    const selJ=G.job?(JOBS[G.cont]||[]).find(j=>j.id===G.job):null;
     h+=`<div class="char-screen"><div class="step-header"><div class="step-label">STEP 2 / 3</div><div class="step-title">${t.s2}</div><div class="dots">${[0,1,2].map(i=>`<div class="dot${i===1?' on':i<1?' done':''}"></div>`).join('')}</div></div><div class="job-wrap">`;
     (JOBS[G.cont]||[]).forEach(j=>{
       const mini=Object.entries(j.s).slice(0,4).map(([k,v])=>`<div class="smr"><span class="sml">${k}</span><div class="smt"><div class="smf" style="width:${v}%"></div></div></div>`).join('');
       h+=`<div class="card${G.job===j.id?' sel':''}" data-job="${j.id}"><div class="jasc">${j.asc}</div><div>${j.sp?`<div class="sp-badge">✦ ${L({ko:'특수',en:'Special',zh:'特殊',ja:'特殊',vi:'Đặc biệt'})}</div>`:''}<div class="jr">${L(j.role)}</div><div class="jn">${L(j.name)}</div><div class="jd">${L(j.desc)}</div></div><div>${mini}</div></div>`;
     });
-    h+=`</div><div class="nav"><button class="nbtn" data-go="2">${t.back}</button><button class="nbtn p${!G.job?' off':''}" data-go="4">${t.next}</button></div></div>`;
+    h+=`</div>`;
+    if(selJ){
+      const imgSrc=JOB_IMAGES[selJ.id];
+      const topStats=Object.entries(selJ.s).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`<span class="jp-stat-tag">${k} ${scaleBase(v)}</span>`).join('');
+      const imgHtml=imgSrc
+        ?`<img src="${imgSrc}" alt="${L(selJ.name)}" style="width:110px;height:150px;object-fit:cover;object-position:top center;display:block" onerror="this.style.opacity='0'">`
+        :`<div class="jp-asc">${selJ.asc.replace(/\n/g,'<br>')}</div>`;
+      h+=`<div class="job-preview"><div class="jp-img">${imgHtml}</div><div class="jp-info"><div class="jp-role-tag">${L(selJ.role)}</div><div class="jp-name">${L(selJ.name)}</div><div class="jp-desc">${L(selJ.desc)}</div><div class="jp-topstats">${topStats}</div></div></div>`;
+    }
+    h+=`<div class="nav"><button class="nbtn" data-go="2">${t.back}</button><button class="nbtn p${!G.job?' off':''}" data-go="4">${t.next}</button></div></div>`;
   } else if(G.screen===4){
     const cb=CONTS.find(c=>c.id===G.cont)?.bonus||{};const base=jobBase(G.cont,G.job)||{};const cobj=CONTS.find(c=>c.id===G.cont);const jobj=JOBS[G.cont]?.find(j=>j.id===G.job);
     h+=`<div class="char-screen"><div class="step-header"><div class="step-label">STEP 3 / 3</div><div class="step-title">${t.s3}</div><div class="dots">${[0,1,2].map(i=>`<div class="dot${i===2?' on':' done'}"></div>`).join('')}</div></div><div class="pool-banner"><div><div class="pool-num">${G.pool}</div><div class="pool-lbl">${t.pool}</div></div><div class="pool-rule">${t.maxDelta} <b>±${MAX_D}</b><br>${t.poolRule}</div></div><div class="stat-rows">`;
