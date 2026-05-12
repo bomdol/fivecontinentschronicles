@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\User\\\\IdeaProjects\\\\5continentschronicles\" -Recurse -File | Where-Object { $_.Extension -notin @\\('.md', '.csv', '.toml'\\) } | Select-Object -ExpandProperty FullName | Select-Object -First 50)",
+      "Bash(python *)",
+      "Bash(del *)"
+    ]
+  }
+}

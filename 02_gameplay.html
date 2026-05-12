@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오대륙전기 — 게임 플레이</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;900&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0a0a08;min-height:100vh}
+.root{font-family:'Noto Sans KR',sans-serif;background:#0a0a08;color:#c8b97a;padding:16px;max-width:680px;margin:0 auto}
+
+/* HUD */
+.hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.hud-block{border:1px solid #2a2518;background:#0e0e0b;padding:8px 10px}
+.hud-label{font-size:9px;letter-spacing:0.25em;color:#5a5130;margin-bottom:4px;font-family:'Noto Sans KR',sans-serif}
+.hud-val{font-size:15px;font-weight:600;color:#e8d48a;font-family:'Noto Serif KR',serif}
+.hp-bar{height:3px;background:#1a1810;margin-top:5px;border-radius:1px}
+.hp-fill{height:100%;background:#5dcaa5;border-radius:1px;transition:width 0.5s}
+.hp-fill.low{background:#e06060}
+.mp-bar{height:3px;background:#1a1820;margin-top:3px;border-radius:1px}
+.mp-fill{height:100%;background:#6a8adc;border-radius:1px;transition:width 0.5s}
+.hud-sub{font-size:9px;color:#5a5a80;margin-top:2px}
+.lv-badge{font-size:9px;color:#c8b97a55;letter-spacing:0.15em}
+.status-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.stag{font-size:9px;padding:1px 6px;border:1px solid #3a3018;color:#8a7e52;font-family:'Noto Sans KR',sans-serif}
+
+/* 스토리 */
+.story-wrap{border:1px solid #2a2518;background:#0a0a07;padding:14px 16px;margin-bottom:12px;min-height:180px}
+.story-chapter{font-size:10px;letter-spacing:0.35em;color:#5a5130;margin-bottom:10px;font-family:'Noto Serif KR',serif}
+.story-text{font-size:13px;color:#b8a86a;line-height:2;font-family:'Noto Serif KR',serif;word-break:keep-all}
+.story-text p{margin-bottom:1em}
+.story-text p:last-child{margin-bottom:0}
+
+/* 로딩 */
+.loading-dots{display:inline-flex;gap:4px;padding:8px 0}
+.ld{width:5px;height:5px;border-radius:50%;background:#c8b97a44;animation:ldpulse 1.2s ease infinite}
+.ld:nth-child(2){animation-delay:0.2s}
+.ld:nth-child(3){animation-delay:0.4s}
+@keyframes ldpulse{0%,100%{background:#c8b97a22}50%{background:#c8b97a}}
+
+/* 선택지 */
+.choices{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.choice-btn{border:1px solid #2a2518;background:#0e0e0b;padding:11px 14px;cursor:pointer;text-align:left;font-family:'Noto Serif KR',serif;font-size:12px;color:#9a8e52;letter-spacing:0.05em;line-height:1.6;transition:all 0.15s;display:flex;gap:10px;align-items:flex-start;width:100%}
+.choice-btn:hover{border-color:#c8b97a55;background:#111109;color:#c8b97a}
+.choice-btn:disabled{opacity:0.3;cursor:default}
+.choice-num{font-size:11px;color:#5a5130;flex-shrink:0;margin-top:1px;font-family:'Noto Sans KR',sans-serif}
+
+/* 하단 입력 */
+.bottom-row{display:flex;gap:8px;align-items:center}
+.input-wrap{flex:1;border:1px solid #2a2518;background:#0e0e0b;display:flex;align-items:center;gap:8px;padding:0 10px}
+.free-input{flex:1;background:transparent;border:none;outline:none;color:#c8b97a;font-family:'Noto Serif KR',serif;font-size:12px;padding:10px 0;letter-spacing:0.05em}
+.free-input::placeholder{color:#3a3218}
+.send-btn{background:transparent;border:none;cursor:pointer;color:#5a5130;font-size:18px;line-height:1;padding:0;transition:color 0.15s}
+.send-btn:hover{color:#c8b97a}
+.menu-btn{padding:9px 14px;background:#0e0e0b;border:1px solid #2a2518;color:#5a5030;font-family:'Noto Sans KR',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap}
+.menu-btn:hover{border-color:#5a4e28;color:#8a7e52}
+
+/* 로그 */
+.log-wrap{border-top:1px solid #1a1810;margin-top:10px;padding-top:10px;display:none}
+.log-wrap.open{display:block}
+.log-item{font-size:11px;color:#4a4428;padding:5px 0;border-bottom:1px solid #141410;font-family:'Noto Serif KR',serif;line-height:1.6}
+.log-item:last-child{border-bottom:none}
+.log-choice{color:#6a6040}
+
+/* API 키 설정 */
+.api-setup{border:1px solid #3a3018;background:#0e0e08;padding:14px 16px;margin-bottom:12px}
+.api-setup p{font-size:11px;color:#6a6040;margin-bottom:8px;font-family:'Noto Sans KR',sans-serif;line-height:1.6}
+.api-input-row{display:flex;gap:8px}
+.api-input{flex:1;background:#141410;border:1px solid #3a3018;color:#c8b97a;font-family:monospace;font-size:11px;padding:8px 10px;outline:none}
+.api-input:focus{border-color:#c8b97a55}
+.api-btn{padding:8px 16px;background:#141410;border:1px solid #5a4e28;color:#9a8e52;font-family:'Noto Sans KR',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap}
+.api-btn:hover{border-color:#c8b97a;color:#c8b97a}
+
+/* Firebase 인증 바 */
+.auth-bar{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border:1px solid #2a2518;background:#0e0e0b;margin-bottom:12px;font-family:'Noto Sans KR',sans-serif}
+.auth-left{display:flex;align-items:center;gap:8px}
+.auth-info{font-size:10px;color:#5a5130}
+.auth-info.on{color:#5dcaa5}
+.save-status{font-size:9px;color:#3a3830;transition:color 0.3s}
+.save-status.ok{color:#5dcaa5}
+.save-status.err{color:#e06060}
+/* 이어하기 배너 */
+.resume-banner{display:none;align-items:center;justify-content:space-between;padding:8px 12px;border:1px solid #4a6a4a;background:#0a1a0a;margin-bottom:12px;font-family:'Noto Sans KR',sans-serif;gap:8px}
+.resume-banner.show{display:flex}
+.resume-msg{font-size:11px;color:#7acaa0;flex:1}
+.resume-btns{display:flex;gap:6px;flex-shrink:0}
+.resume-yes{font-size:10px;padding:4px 12px;background:#0a2a1a;border:1px solid #5dcaa5;color:#5dcaa5;cursor:pointer;font-family:'Noto Sans KR',sans-serif}
+.resume-yes:hover{background:#0a3a2a}
+.resume-no{font-size:10px;padding:4px 10px;background:transparent;border:1px solid #3a3018;color:#5a5130;cursor:pointer;font-family:'Noto Sans KR',sans-serif}
+.resume-no:hover{border-color:#6a6040;color:#8a7e52}
+.auth-btn{font-size:10px;padding:4px 10px;background:#141410;border:1px solid #3a3018;color:#8888dd;cursor:pointer;font-family:'Noto Sans KR',sans-serif}
+.auth-btn:hover{border-color:#8888dd;color:#aaaaee}
+
+/* 생물 이미지 패널 */
+.story-body{display:flex;gap:12px;align-items:flex-start}
+.story-text{flex:1;min-width:0}
+.creature-panel{width:148px;flex-shrink:0;border:1px solid #2a2518;background:#080806;display:none}
+.creature-panel.show{display:block}
+.creature-panel img{width:100%;display:block;opacity:0.92}
+.creature-panel-info{padding:6px 8px;border-top:1px solid #1a1810}
+.creature-panel-name{font-size:10px;color:#c8b97a;font-family:'Noto Serif KR',serif;line-height:1.4}
+.creature-panel-en{font-size:8px;color:#4a4428;letter-spacing:0.1em;margin-top:1px}
+.creature-panel-stats{font-size:9px;color:#5a5130;margin-top:5px;line-height:1.6}
+
+/* AI 제공자 선택 */
+.provider-tabs{display:flex;gap:6px;margin-bottom:10px}
+.ptab{padding:5px 14px;background:#141410;border:1px solid #3a3018;color:#6a6040;font-family:'Noto Sans KR',sans-serif;font-size:11px;cursor:pointer;transition:all 0.15s}
+.ptab:hover{border-color:#5a4e28;color:#8a7e52}
+.ptab.on{border-color:#c8b97a;color:#c8b97a;background:#1a1810}
+.free-tag{font-size:8px;padding:1px 4px;background:#0a1f0a;border:1px solid #1a4a1a;color:#5dcaa5;margin-left:3px;vertical-align:middle}
+.provider-desc{font-size:11px;color:#6a6040;margin-bottom:8px;font-family:'Noto Sans KR',sans-serif;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="root">
+
+  <!-- API 키 설정 -->
+  <div class="api-setup" id="api-setup">
+    <div class="provider-tabs">
+      <button class="ptab on" data-p="claude">Claude</button>
+      <button class="ptab" data-p="groq">Groq<span class="free-tag">무료</span></button>
+      <button class="ptab" data-p="gemini">Gemini<span class="free-tag">무료</span></button>
+      <button class="ptab" data-p="openai">GPT</button>
+    </div>
+    <p class="provider-desc" id="provider-desc">풍부한 서사와 창의적 묘사에 강합니다. API 키는 console.anthropic.com에서 발급.</p>
+    <div class="api-input-row">
+      <input class="api-input" id="api-key-input" type="password" placeholder="sk-ant-...">
+      <button class="api-btn" id="api-save-btn">저장 후 시작</button>
+    </div>
+  </div>
+
+  <!-- Firebase 인증 바 -->
+  <div class="auth-bar" id="auth-bar">
+    <div class="auth-left">
+      <span class="auth-info" id="auth-info">로그인하면 게임이 자동 저장되어 다른 기기에서도 이어서 할 수 있습니다.</span>
+      <span class="save-status" id="save-status"></span>
+    </div>
+    <button class="auth-btn" id="auth-btn">Google로 로그인</button>
+  </div>
+
+  <!-- 이어하기 배너 -->
+  <div class="resume-banner" id="resume-banner">
+    <span class="resume-msg" id="resume-msg">저장된 진행 상황이 있습니다.</span>
+    <div class="resume-btns">
+      <button class="resume-yes" id="resume-yes">이어하기</button>
+      <button class="resume-no" id="resume-no">무시</button>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div class="hud">
+    <div class="hud-block">
+      <div class="hud-label">HP</div>
+      <div class="hud-val" id="hud-hp">100 / 100</div>
+      <div class="hp-bar"><div class="hp-fill" id="hp-bar" style="width:100%"></div></div>
+      <div class="hud-sub">MP <span id="hud-mp">— / —</span></div>
+      <div class="mp-bar"><div class="mp-fill" id="mp-bar" style="width:100%"></div></div>
+    </div>
+    <div class="hud-block">
+      <div class="hud-label">캐릭터</div>
+      <div class="hud-val" id="hud-char" style="font-size:12px">—</div>
+      <div id="hud-cont" style="font-size:9px;color:#5a5130;margin-top:3px">—</div>
+    </div>
+    <div class="hud-block">
+      <div class="hud-label">레벨 / 상태</div>
+      <div class="lv-badge" id="hud-lv">Lv 1</div>
+      <div class="hud-sub" id="hud-xp">XP 0 / 300</div>
+      <div class="status-tags" id="status-tags"><span class="stag">정상</span></div>
+    </div>
+  </div>
+
+  <!-- 스토리 -->
+  <div class="story-wrap">
+    <div class="story-chapter" id="chapter-label">— 대기 중 —</div>
+    <div class="story-body">
+      <div class="story-text" id="story-text">
+        <div class="loading-dots"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div>
+      </div>
+      <div class="creature-panel" id="creature-panel">
+        <img id="creature-img" src="" alt="">
+        <div class="creature-panel-info">
+          <div class="creature-panel-name" id="creature-panel-name"></div>
+          <div class="creature-panel-en" id="creature-panel-en"></div>
+          <div class="creature-panel-stats" id="creature-panel-stats"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 선택지 -->
+  <div class="choices" id="choices"></div>
+
+  <!-- 하단 -->
+  <div class="bottom-row">
+    <div class="input-wrap">
+      <input class="free-input" id="free-input" placeholder="직접 행동을 입력하세요...">
+      <button class="send-btn" id="send-btn">↵</button>
+    </div>
+    <button class="menu-btn" id="log-toggle">기록 ▾</button>
+    <button class="menu-btn" id="apikey-btn">API 키</button>
+    <button class="menu-btn" onclick="window.location.href='01_character_select.html'">처음으로</button>
+  </div>
+
+  <div class="log-wrap" id="log-wrap">
+    <div id="log-list"></div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- 세계관 설정 -->
+<script src="lore_terra_nova.js"></script>
+<script src="lore_characters.js"></script>
+<script src="lore_combat_rules.js"></script>
+<script src="lore_dnd_rules.js"></script>
+<script src="lore_jobs_levels.js"></script>
+
+<script>
+// URL 파라미터에서 캐릭터 정보 읽기
+const params = new URLSearchParams(window.location.search);
+
+// 대륙/직업 데이터
+const CONTS=[
+  {id:'magic',  name:{ko:'마법 대륙',  en:'Arcania', zh:'魔法大陆',ja:'魔法大陸',  vi:'Đại Lục Ma Pháp'},bonus:{지력:2,지혜:1}},
+  {id:'science',name:{ko:'과학 대륙',  en:'Mechanica',zh:'科学大陆',ja:'科学大陸',  vi:'Đại Lục Khoa Học'},bonus:{지력:2,체력:1}},
+  {id:'wuxia',  name:{ko:'무협 대륙',  en:'Wuxia',   zh:'武侠大陆',ja:'武侠大陸',  vi:'Đại Lục Võ Hiệp'},bonus:{근력:1,민첩:2}},
+  {id:'psychic',name:{ko:'초능력 대륙',en:'Psychia', zh:'超能大陆',ja:'超能力大陸',vi:'Đại Lục Siêu Năng'},bonus:{지혜:2,민첩:1}},
+];
+const JOBS={
+  magic:[
+    {id:'kn',role:{ko:'전사형',en:'Warrior'}, name:{ko:'마법 기사',  en:'Magic Knight'},   desc:{ko:'갑옷에 마법을 새겨 싸우는 전사.',         en:'Warrior who inscribes magic into armor.'}},
+    {id:'am',role:{ko:'마법형',en:'Mage'},    name:{ko:'대마법사',   en:'Archmage'},        desc:{ko:'낮은 전투력, 강력한 광역 주문.',           en:'Low combat, powerful area spells.'}},
+    {id:'ma',role:{ko:'도적형',en:'Rogue'},   name:{ko:'마법 암살자',en:'Spell Assassin'},  desc:{ko:'은신 마법과 단검의 결합.',                 en:'Combines stealth magic with daggers.'}},
+    {id:'hl',role:{ko:'지원형',en:'Support'}, name:{ko:'성약사',     en:'Sanctum Healer'},  desc:{ko:'치유 마법과 약초 지식 겸비.',              en:'Combines healing magic with herbalism.'}},
+    {id:'fb',role:{ko:'특수 — 희귀',en:'Special'},name:{ko:'금서 사용자',en:'Forbidden Arts'},desc:{ko:'금지된 농경 마법서를 아는 자.',           en:'Knows the forbidden agrarian grimoire.'}},
+  ],
+  science:[
+    {id:'ar',role:{ko:'전사형',en:'Warrior'}, name:{ko:'기갑병', en:'Iron Soldier'}, desc:{ko:'동력 갑옷 전투 병사.',                 en:'Powered armor combat soldier.'}},
+    {id:'iv',role:{ko:'기술형',en:'Tech'},    name:{ko:'발명가', en:'Inventor'},     desc:{ko:'현장 즉흥 발명가.',                   en:'Improvises inventions on the field.'}},
+    {id:'hk',role:{ko:'도적형',en:'Rogue'},   name:{ko:'해커',   en:'Hacker'},       desc:{ko:'기계·정보망 침투 전문.',               en:'Specialist in machine & network infiltration.'}},
+    {id:'md',role:{ko:'지원형',en:'Support'}, name:{ko:'의무병', en:'Field Medic'},  desc:{ko:'전장 응급처치 전문.',                  en:'Field emergency medical specialist.'}},
+    {id:'nw',role:{ko:'특수 — 희귀',en:'Special'},name:{ko:'새사람',en:'New Human'}, desc:{ko:'인간-기계 혼합체 실험체.',             en:'Human-machine hybrid experiment subject.'}},
+  ],
+  wuxia:[
+    {id:'sw',role:{ko:'전사형',en:'Warrior'}, name:{ko:'검객',      en:'Swordsman'},  desc:{ko:'검술·내공 겸비 정통 무인.',           en:'Orthodox warrior combining swordsmanship and inner force.'}},
+    {id:'sc',role:{ko:'마법형',en:'Mage'},    name:{ko:'술사',      en:'Elementalist'},desc:{ko:'오행의 기를 다루는 도사.',            en:'Taoist who wields the five elemental forces.'}},
+    {id:'jk',role:{ko:'도적형',en:'Rogue'},   name:{ko:'자객',      en:'Assassin'},   desc:{ko:'경공·암기 결합 암살자.',              en:'Assassin combining qinggong and hidden weapons.'}},
+    {id:'us',role:{ko:'지원형',en:'Support'}, name:{ko:'의선',      en:'Physician'},  desc:{ko:'영약 조제·경혈 치료의 고수.',         en:'Master of elixirs and acupressure healing.'}},
+    {id:'dh',role:{ko:'특수 — 희귀',en:'Special'},name:{ko:'달마 내공자',en:'Dharma'},desc:{ko:'마법·무협 융합 비정통 내공.',          en:'Unorthodox inner force fusing magic and martial arts.'}},
+  ],
+  psychic:[
+    {id:'fc',role:{ko:'전사형',en:'Warrior'}, name:{ko:'역장사',    en:'Force User'},    desc:{ko:'염동력으로 적을 밀고 당긴다.',       en:'Pushes and pulls enemies with telekinesis.'}},
+    {id:'tk',role:{ko:'원거리형',en:'Ranged'},name:{ko:'염동력자',  en:'Telekinetic'},   desc:{ko:'물체·에너지 원격 조종.',             en:'Remote control of objects and energy.'}},
+    {id:'jy',role:{ko:'도적형',en:'Rogue'},   name:{ko:'잠영술사',  en:'Shadow Walker'}, desc:{ko:'마음 읽기·환각으로 교란.',           en:'Disrupts with mind-reading and illusions.'}},
+    {id:'ep',role:{ko:'지원형',en:'Support'}, name:{ko:'초능력 의사',en:'Psychic Healer'},desc:{ko:'감응으로 부상 진단·고통 흡수.',     en:'Diagnoses wounds via empathy, absorbs pain.'}},
+    {id:'aw',role:{ko:'특수 — 희귀',en:'Special'},name:{ko:'각성자',en:'Awakened'},     desc:{ko:'새사람 프로젝트 탈출체.',             en:'Escaped subject of the New Human Project.'}},
+  ],
+};
+// 대륙별 배경 문구 (직업 역할을 인자로 받는 함수)
+const CONT_BG={
+  magic:  {ko:r=>`${r} 출신. 마법 대륙 귀족의 명을 받아 마나 메탈 탐사대 일원으로 테라 노바에 왔다.`,
+            en:r=>`A ${r} dispatched by Arcanian mage nobility to find mana metal in Terra Nova.`},
+  science:{ko:r=>`${r} 출신. 과학 대륙의 철 고갈 위기를 해결하기 위해 테라 노바 개척대에 자원했다.`,
+            en:r=>`A ${r} who joined the Terra Nova expedition to address Mechanica's iron shortage.`},
+  wuxia:  {ko:r=>`${r} 출신. 무림의 내분을 피해 영약과 미르의 전설을 좇아 테라 노바로 건너왔다.`,
+            en:r=>`A ${r} who crossed to Terra Nova — fleeing martial world conflict, seeking elixirs and the legendary mirr.`},
+  psychic:{ko:r=>`${r} 출신. 과학 대륙의 착취에 분노하며 테라 노바로 건너온 초능력인. 같은 초능력인들을 찾고 있다.`,
+            en:r=>`A ${r} who crossed to Terra Nova in anger over Mechanica's exploitation, searching for fellow psychics.`},
+};
+// 역할별 플레이 힌트
+const ROLE_HINT={
+  ko:{'전사형':'전투 주도·피해 흡수','마법형':'주문명 사용·광역 효과','기술형':'장치 활용·즉흥 해결','도적형':'은신·기습·정보 수집','지원형':'치유·버프·정보 역할','원거리형':'원격 조종·공격','특수 — 희귀':'고유 능력 적극 활용'},
+  en:{'Warrior':'leads combat, absorbs damage','Mage':'named spells, area effects','Tech':'gadgets, improvised solutions','Rogue':'stealth, ambush, intel','Support':'healing, buffs, information','Ranged':'remote attacks and control','Special':'unique unorthodox abilities'},
+};
+
+function L(obj){const c=CHAR?.lang||'ko';return typeof obj==='object'?(obj[c]||obj.ko||obj.en||Object.values(obj)[0]):obj;}
+function topStats(statsStr,n=2){
+  const m={};statsStr.split(',').forEach(s=>{const t=s.trim().match(/^(\S+)\s+(\d+)/);if(t)m[t[1]]=+t[2];});
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,n)
+    .map(([k,v])=>{const mod=Math.floor((v-10)/2);return `${k} ${v}(${mod>=0?'+':''}${mod})`;}).join(' · ');
+}
+
+// URL 파라미터 우선, 없으면 sessionStorage 백업 사용
+let _cd = null;
+if (params.get('cont') && params.get('job')) {
+  _cd = { lang: params.get('lang')||'ko', cont: params.get('cont'), job: params.get('job'), stats: params.get('stats')||'' };
+  sessionStorage.setItem('fcc_char', JSON.stringify(_cd)); // 백업 갱신
+} else {
+  try { _cd = JSON.parse(sessionStorage.getItem('fcc_char')||'null'); } catch(e) {}
+}
+if (!_cd?.cont || !_cd?.job) {
+  window.location.replace('01_character_select.html');
+  throw new Error('no char'); // 이후 코드 실행 방지
+}
+
+const CHAR = {
+  lang:  _cd.lang  || 'ko',
+  cont:  _cd.cont,
+  job:   _cd.job,
+  stats: _cd.stats || '',
+  level: 1,
+  xp:    0,
+  hp:    100, maxHp: 100,
+  mp:    50,  maxMp: 50,
+  status: ['정상'],
+};
+// 실제 HP/MP는 lore_jobs_levels.js 로드 후 계산
+if (typeof calcMaxHp === 'function') {
+  CHAR.maxHp = calcMaxHp(CHAR.job, CHAR.level, CHAR.stats);
+  CHAR.hp    = CHAR.maxHp;
+  CHAR.maxMp = calcMaxMp(CHAR.job, CHAR.level, CHAR.stats);
+  CHAR.mp    = CHAR.maxMp;
+}
+const contObj = CONTS.find(c=>c.id===CHAR.cont);
+const jobObj  = JOBS[CHAR.cont]?.find(j=>j.id===CHAR.job);
+
+if (!contObj || !jobObj) {
+  window.location.replace('01_character_select.html');
+  throw new Error('invalid char');
+}
+const contName = L(contObj.name);
+const jobName  = L(jobObj.name);
+const jobRole  = L(jobObj.role);
+const jobDesc  = L(jobObj.desc);
+
+// HUD 초기화
+document.getElementById('hud-char').textContent = jobName;
+document.getElementById('hud-cont').textContent = contName;
+// updateHUD()는 함수 정의 후 호출 — 여기서는 텍스트만 설정
+
+// ── Firebase ─────────────────────────────────────────────────────────
+// Firebase 콘솔(console.firebase.google.com)에서 프로젝트 생성 후
+// 아래 값들을 채워주세요 (프로젝트 설정 → 웹 앱 → SDK 구성)
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyCNb-V-s3mhJj-Aej99QIjkjsRUHzZjqdE",
+  authDomain:        "fivecontinentschronicles.firebaseapp.com",
+  projectId:         "fivecontinentschronicles",
+  storageBucket:     "fivecontinentschronicles.firebasestorage.app",
+  messagingSenderId: "40307095715",
+  appId:             "1:40307095715:web:7da77e8b18b415c2256716"
+};
+
+let fbUser = null;
+let fbDb   = null;
+
+(function initFirebase() {
+  try {
+    if (FIREBASE_CONFIG.apiKey === 'FILL_IN') return; // 설정 전이면 건너뜀
+    firebase.initializeApp(FIREBASE_CONFIG);
+    fbDb = firebase.firestore();
+    const fbAuth = firebase.auth();
+
+    fbAuth.onAuthStateChanged(user => {
+      fbUser = user;
+      const info = document.getElementById('auth-info');
+      const btn  = document.getElementById('auth-btn');
+      if (user) {
+        info.textContent = user.displayName || user.email || '로그인됨';
+        info.className   = 'auth-info on';
+        btn.textContent  = '로그아웃';
+        btn.onclick = () => fbAuth.signOut();
+      } else {
+        info.textContent = '로그인하면 게임이 자동 저장되어 다른 기기에서도 이어서 할 수 있습니다.';
+        info.className   = 'auth-info';
+        btn.textContent  = 'Google로 로그인';
+        btn.onclick = () => fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+      }
+    });
+  } catch(e) {
+    console.warn('Firebase 초기화 실패:', e.message);
+  }
+})();
+
+const LS_KEY = () => `fcc_save_${CHAR.cont}_${CHAR.job}`;
+
+function saveLocal(data) {
+  try { localStorage.setItem(LS_KEY(), JSON.stringify(data)); } catch(e) {}
+}
+function loadLocal() {
+  try { const r = localStorage.getItem(LS_KEY()); return r ? JSON.parse(r) : null; } catch(e) { return null; }
+}
+
+let _saveStatusTimer = null;
+function showSaveStatus(text, cls) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  el.textContent = text; el.className = `save-status ${cls}`;
+  clearTimeout(_saveStatusTimer);
+  _saveStatusTimer = setTimeout(() => { el.textContent = ''; el.className = 'save-status'; }, 3000);
+}
+
+async function saveGame() {
+  const data = {
+    character: { lang: CHAR.lang, cont: CHAR.cont, job: CHAR.job, stats: CHAR.stats },
+    gameState: { hp: CHAR.hp, maxHp: CHAR.maxHp, mp: CHAR.mp, maxMp: CHAR.maxMp,
+                 level: CHAR.level, xp: CHAR.xp, status: CHAR.status },
+    chapter:   document.getElementById('chapter-label').textContent,
+    history:   history.slice(-10),
+    savedAt:   Date.now(),
+    turns:     history.length
+  };
+
+  // 비로그인 → 로컬 저장
+  saveLocal(data);
+
+  // 로그인 상태면 Firestore에도 저장
+  if (!fbUser || !fbDb) { showSaveStatus('임시저장', 'ok'); return; }
+  try {
+    await fbDb.collection('saves').doc(fbUser.uid).set({
+      ...data, savedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showSaveStatus('저장됨 ✓', 'ok');
+  } catch(e) {
+    showSaveStatus('저장 실패', 'err');
+  }
+}
+
+async function loadSave() {
+  // Firebase 우선 (로그인 상태)
+  if (fbUser && fbDb) {
+    try {
+      const doc = await fbDb.collection('saves').doc(fbUser.uid).get();
+      if (doc.exists) return doc.data();
+    } catch(e) {}
+  }
+  // 로컬 폴백
+  return loadLocal();
+}
+// ─────────────────────────────────────────────────────────────────────
+
+// AI 제공자 관리
+const AI_PROVIDERS = {
+  claude: { label:'Claude', placeholder:'sk-ant-...',
+            desc:'풍부한 서사와 창의적 묘사에 강합니다. API 키는 console.anthropic.com에서 발급.' },
+  groq:   { label:'Groq',   placeholder:'gsk_...',
+            desc:'Llama 3.3 70B 무료 제공. 하루 14,400회. console.groq.com → API Keys에서 발급.' },
+  gemini: { label:'Gemini', placeholder:'AIzaSy...',
+            desc:'무료 티어 제공. API 키는 aistudio.google.com → Get API Key 에서 발급.' },
+  openai: { label:'GPT',    placeholder:'sk-...',
+            desc:'GPT-4o mini 사용. API 키는 platform.openai.com에서 발급.' },
+};
+let currentProvider = sessionStorage.getItem('fcc_provider') || 'claude';
+const KEYS = {
+  claude: sessionStorage.getItem('fcc_key_claude') || '',
+  groq:   sessionStorage.getItem('fcc_key_groq')   || '',
+  gemini: sessionStorage.getItem('fcc_key_gemini') || '',
+  openai: sessionStorage.getItem('fcc_key_openai') || '',
+};
+let API_KEY = KEYS[currentProvider];
+
+function selectProvider(p) {
+  currentProvider = p;
+  API_KEY = KEYS[p];
+  document.querySelectorAll('.ptab').forEach(b => b.classList.toggle('on', b.dataset.p === p));
+  document.getElementById('api-key-input').placeholder = AI_PROVIDERS[p].placeholder;
+  document.getElementById('provider-desc').textContent  = AI_PROVIDERS[p].desc;
+  document.getElementById('api-key-input').value = KEYS[p];
+}
+document.querySelectorAll('.ptab').forEach(b => b.addEventListener('click', () => selectProvider(b.dataset.p)));
+selectProvider(currentProvider); // 저장된 제공자로 초기화
+
+if(API_KEY) document.getElementById('api-setup').style.display = 'none';
+
+document.getElementById('api-save-btn').addEventListener('click', () => {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key) { alert('API 키를 입력하세요'); return; }
+  API_KEY = key;
+  KEYS[currentProvider] = key;
+  sessionStorage.setItem(`fcc_key_${currentProvider}`, key);
+  sessionStorage.setItem('fcc_provider', currentProvider);
+  document.getElementById('api-setup').style.display = 'none';
+  startGame();
+});
+
+// 시스템 프롬프트 생성
+function buildSystemPrompt() {
+  const bgFn = CONT_BG[CHAR.cont];
+  const langKey = bgFn?.[CHAR.lang] ? CHAR.lang : 'ko';
+  const background = bgFn ? bgFn[langKey](jobRole) : `${jobRole} 출신. 테라 노바를 탐험하러 왔다.`;
+  const hint = ROLE_HINT.ko[jobObj.role.ko] || ROLE_HINT.en[jobObj.role.en] || '';
+  const isKo = CHAR.lang === 'ko';
+  const langHeader = isKo
+    ? `[언어 규칙 — 최우선 필수 준수]
+반드시 한국어로만 답변하십시오.
+중국어 한자(漢字·汉字), 일본어(ひらがな·カタカナ·漢字)를 절대 사용하지 마십시오.
+무협·내공·경공·영약 등 동양 소재 용어도 전부 한국어로만 표기하십시오.
+예) 기(氣)→기, 내공(內功)→내공, 검기(劍氣)→검기 — 한자 병기 금지.`
+    : CHAR.lang === 'en'
+    ? `[Language Rule — TOP PRIORITY]
+You MUST respond entirely in English. Do not mix in any other language.`
+    : `[Language Rule — TOP PRIORITY]
+You MUST respond entirely in the player's chosen language: ${CHAR.lang}. Do not mix in any other language.`;
+
+  const langRule = isKo
+    ? '반드시 한국어로만 진행. 한자·일본어 문자 혼용 절대 금지.'
+    : CHAR.lang === 'en'
+    ? 'Respond in English only. Do not mix in other languages.'
+    : `Respond only in ${CHAR.lang}. Do not mix in other languages.`;
+
+  return `${langHeader}
+
+당신은 '오대륙전기(Five Continents Chronicles)' 텍스트 어드벤처 게임의 게임 마스터입니다.
+
+[세계관]
+태초에 판게아가 다섯 대륙으로 갈라졌다.
+- 마법 대륙(Arcania): 마법사 귀족 지배, 마나 메탈 갈망
+- 과학 대륙(Mechanica): 비행선·기계 발달, 철 고갈, 새사람 프로젝트
+- 무협 대륙(Wuxia): 흑도·백도 내분, 내공·경공·영약
+- 초능력 대륙(Psychia): 초능력자들, 인구 희소, 과학 대륙에 착취당한 한
+- 테라 노바(Terra Nova): 북극점의 빈 땅, 철광·영약 보고, 미르(드래곤) 잠든 곳
+현재 네 대륙이 테라 노바를 두고 개척 전쟁 중.
+
+[플레이어]
+- 대륙: ${contName}
+- 직업: ${jobName} (Lv ${CHAR.level})
+- HP: ${CHAR.hp}/${CHAR.maxHp} | MP: ${CHAR.mp}/${CHAR.maxMp}
+- 능력치: ${CHAR.stats}
+- 배경: ${background}
+
+[스토리 배경 — 이 캐릭터의 목적과 갈등]
+${typeof buildCharLore === 'function' ? buildCharLore(CHAR.cont, CHAR.job) : ''}
+
+[테라 노바 서사]
+${typeof TERRA_NOVA_LORE !== 'undefined' ? TERRA_NOVA_LORE : ''}
+
+[직업 능력]
+${jobName} — ${jobDesc}
+${topStats(CHAR.stats)}로 해당 판정에 강점. ${hint}
+
+${typeof buildJobSkills === 'function' ? buildJobSkills(CHAR.job, CHAR.level) : ''}
+
+[진행 규칙]
+1. 매 턴 현장 묘사 2~3문단 후 선택지 4개 제공
+2. 능력치 판정이 필요한 상황엔 판정 결과를 서술
+3. ${jobName} 특성을 활발히 활용 (${jobDesc})
+4. 각 대륙 캐릭터 특색: 무협은 초식명, 마법은 주문명, 과학은 장비명 사용
+5. 분위기: 어둡고 긴장감 있되 인간적 온기
+6. 언어: ${langRule}
+
+${typeof buildXpRules === 'function' ? buildXpRules() : ''}
+
+${typeof buildDndRules === 'function' ? buildDndRules() : ''}
+
+${typeof buildCombatRules === 'function' ? buildCombatRules() : ''}
+
+[테라 노바 생물 — 게임 마스터 참고용]
+테라 노바는 현재 네 대륙이 개척 전쟁 중인 미지의 땅으로, 아래 생물들이 서식한다.
+등장 빈도는 스토리 맥락에 따라 자유롭게 조절하되, 대륙별 연계 이벤트를 적극 활용할 것.
+${typeof buildCreatureLore === 'function' ? buildCreatureLore() : ''}
+
+[응답 형식 — 반드시 순수 JSON만 반환, 마크다운 없이]
+{
+  "chapter": "장 제목",
+  "story": "스토리 (문단 구분은 \\n\\n)",
+  "choices": ["선택지1","선택지2","선택지3","선택지4"],
+  "hp_delta": 0,
+  "mp_delta": 0,
+  "xp_gained": 0,
+  "creature_id": "",
+  "status": ["상태태그"],
+  "items_gained": [],
+  "items_lost": []
+}
+hp_delta: 피해면 음수, 회복이면 양수. mp_delta: 스킬 사용 소모면 음수, 회복이면 양수.
+xp_gained: 전투 승리·퀘스트 완료 시 양수. 몬스터 레벨과 레벨 차 배율 적용. 비전투 시 0.
+creature_id: 현재 장면에 생물/몬스터가 등장하면 해당 ID 입력, 없으면 빈 문자열.
+사용 가능한 ID: frost_swarm, aurora_jellyfish, aurora_wolf, cryo_turtle, frost_spirit_bear, frostwhale, pyroclast_elemental, ironhide_bear, fossil_titan, bloodsnow_bear, glacier_wyrm, ice_kraken
+
+[최종 확인] ${isKo ? '위 JSON의 모든 텍스트 값은 순수 한국어로만 작성. 한자·일본어 문자 포함 시 오답.' : `All text values in the JSON above must be in ${CHAR.lang} only.`}`;
+}
+
+// 생물 ID → 이미지 경로 + 표시 이름
+const CREATURE_IMAGES = {
+  frost_swarm:        { img:'images/빙결곤충군.png',   ko:'빙결 곤충군',   en:'Frost Swarm' },
+  aurora_jellyfish:   { img:'images/극광해파리.png',   ko:'극광 해파리',   en:'Aurora Jellyfish' },
+  aurora_wolf:        { img:'images/극광늑대.png',     ko:'극광 늑대',     en:'Aurora Wolf' },
+  cryo_turtle:        { img:'images/빙하거북.png',     ko:'빙하 거북',     en:'Cryo Turtle' },
+  frost_spirit_bear:  { img:'images/빙결영혼곰.png',   ko:'빙결 영혼곰',   en:'Frost Spirit Bear' },
+  frostwhale:         { img:'images/빙해고래.png',     ko:'빙해 고래',     en:'Frostwhale' },
+  pyroclast_elemental:{ img:'images/용암정령.png',     ko:'용암 정령',     en:'Pyroclast Elemental' },
+  ironhide_bear:      { img:'images/철갑설곰.png',     ko:'철갑 설곰',     en:'Ironhide Polar Bear' },
+  fossil_titan:       { img:'images/화석거인.png',     ko:'화석 거인',     en:'Fossil Titan' },
+  bloodsnow_bear:     { img:'images/혈설곰.png',       ko:'혈설곰',        en:'Bloodsnow Bear' },
+  glacier_wyrm:       { img:'images/빙혈미르.png',     ko:'빙혈 미르',     en:'Glacier Wyrm' },
+};
+
+function showCreaturePanel(creatureId) {
+  const panel = document.getElementById('creature-panel');
+  const info = CREATURE_IMAGES[creatureId];
+  if (!info) { panel.classList.remove('show'); return; }
+
+  document.getElementById('creature-img').src = info.img;
+  document.getElementById('creature-img').alt = info.ko;
+  document.getElementById('creature-panel-name').textContent = info.ko;
+  document.getElementById('creature-panel-en').textContent = info.en;
+
+  // CREATURES 배열에서 전투 수치 찾기
+  const cr = typeof CREATURES !== 'undefined'
+    ? CREATURES.find(c => c.id === creatureId) : null;
+  if (cr?.combat) {
+    document.getElementById('creature-panel-stats').innerHTML =
+      `Lv.${cr.level ?? '?'} ★${cr.threat ?? '?'}<br>` +
+      `HP ${cr.combat.hp} · ATK ${cr.combat.atk}<br>` +
+      `MP ${cr.combat.mp}`;
+  } else {
+    document.getElementById('creature-panel-stats').textContent = '';
+  }
+  panel.classList.add('show');
+}
+
+let history = [];
+let isLoading = false;
+let logItems = [];
+
+// ── AI 제공자별 호출 함수 ─────────────────────────────────────────────
+async function callClaude(sys, msgs) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},
+    body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:1200, system:sys, messages:msgs})
+  });
+  const d = await res.json();
+  if (!res.ok) throw new Error(d.error?.message || `HTTP ${res.status}`);
+  return d.content?.[0]?.text || '';
+}
+
+async function callGemini(sys, msgs) {
+  const contents = msgs.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{text: m.content}]
+  }));
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+    {method:'POST', headers:{'Content-Type':'application/json'},
+     body: JSON.stringify({system_instruction:{parts:[{text:sys}]}, contents, generationConfig:{maxOutputTokens:1200, temperature:0.9}})}
+  );
+  const d = await res.json();
+  if (!res.ok) throw new Error(d.error?.message || `HTTP ${res.status}`);
+  return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+async function callOpenAI(sys, msgs) {
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${API_KEY}`},
+    body: JSON.stringify({model:'gpt-4o-mini', max_tokens:1200,
+      messages:[{role:'system', content:sys}, ...msgs]})
+  });
+  const d = await res.json();
+  if (!res.ok) throw new Error(d.error?.message || `HTTP ${res.status}`);
+  return d.choices?.[0]?.message?.content || '';
+}
+
+async function callGroq(sys, msgs) {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${API_KEY}`},
+    body: JSON.stringify({model:'llama-3.3-70b-versatile', max_tokens:1200,
+      messages:[{role:'system', content:sys}, ...msgs]})
+  });
+  const d = await res.json();
+  if (!res.ok) throw new Error(d.error?.message || `HTTP ${res.status}`);
+  return d.choices?.[0]?.message?.content || '';
+}
+
+async function callAI(sys, msgs) {
+  if (currentProvider === 'gemini') return callGemini(sys, msgs);
+  if (currentProvider === 'openai') return callOpenAI(sys, msgs);
+  if (currentProvider === 'groq')   return callGroq(sys, msgs);
+  return callClaude(sys, msgs);
+}
+// ─────────────────────────────────────────────────────────────────────
+
+// ── JSON 파싱 ────────────────────────────────────────────────────────────
+function safeParseGM(raw) {
+  // 1) 마크다운 코드블록 제거 후 {} 범위 추출
+  let text = raw.replace(/```json|```/g, '').trim();
+  const start = text.indexOf('{');
+  const end   = text.lastIndexOf('}');
+  if (start !== -1 && end > start) text = text.slice(start, end + 1);
+
+  // 2) 표준 파싱 시도
+  try { return JSON.parse(text); } catch(_) {}
+
+  // 3) JSON 문자열 값 안의 literal 줄바꿈·탭 교정 후 재시도
+  //    "..." 안에서 이스케이프되지 않은 줄바꿈을 \n 로 치환
+  try {
+    const fixed = text.replace(/"((?:[^"\\]|\\.)*)"/gs, (_, inner) =>
+      '"' + inner.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t') + '"'
+    );
+    return JSON.parse(fixed);
+  } catch(_) {}
+
+  // 4) 파싱 완전 실패 → 텍스트를 story 로 그대로 표시
+  return {
+    chapter: document.getElementById('chapter-label').textContent,
+    story:   raw,
+    choices: ['계속 살핀다','다른 방향으로 간다','잠시 기다린다','상황을 파악한다'],
+    hp_delta: 0, status: CHAR.status, items_gained: [], items_lost: []
+  };
+}
+// ── 언어 혼용 감지 & 교정 ───────────────────────────────────────────────
+// CJK 한자, 일본어 가나, 태국어, 아랍어 등 비한국어 문자 감지
+function hasForeignChars(text) {
+  // CJK U+4E00-9FFF, 히라가나 3040-309F, 카타카나 30A0-30FF, 태국어 0E00-0E7F, 아랍어 0600-06FF
+  return /[\u4E00-\u9FFF\u3040-\u30FF\u0E00-\u0E7F\u0600-\u06FF]/.test(text);
+}
+
+// story + choices 필드만 골라서 교정 요청 (토큰 최소화)
+async function repairForeignChars(parsed) {
+  const suspect = { story: parsed.story || '', choices: parsed.choices || [] };
+  const fixPrompt = `아래 JSON의 story와 choices에서 한국어가 아닌 문자(중국어 한자, 일본어 가나, 태국어, 아랍어 등)를 모두 한국어로 번역하세요. 수정된 story와 choices만 담은 순수 JSON을 반환하세요.\n${JSON.stringify(suspect)}`;
+  try {
+    const raw = await callAI(
+      '한국어 텍스트 교정기. 비한국어 문자만 한국어로 변환. 순수 JSON만 반환.',
+      [{ role: 'user', content: fixPrompt }]
+    );
+    const fix = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    if (fix.story)   parsed.story   = fix.story;
+    if (fix.choices) parsed.choices = fix.choices;
+  } catch(e) { /* 교정 실패 시 원본 유지 */ }
+  return parsed;
+}
+
+// 히스토리를 오염시키지 않고 AI 전송 시에만 언어 힌트 추가
+function buildHistoryForAI() {
+  if (CHAR.lang !== 'ko') return history;
+  return history.map((m, i) =>
+    (i === history.length - 1 && m.role === 'user')
+      ? { ...m, content: m.content + '\n[반드시 순수 한국어로만 응답. 한자·가나·태국어 등 비한국어 문자 절대 사용 금지]' }
+      : m
+  );
+}
+// ─────────────────────────────────────────────────────────────────────
+
+async function callGM(userMsg) {
+  if(isLoading) return;
+  if(!API_KEY) { document.getElementById('api-setup').style.display='block'; return; }
+  isLoading = true;
+  setUI(false);
+  showLoading();
+  history.push({role:'user', content: userMsg});
+
+  try {
+    const raw = await callAI(buildSystemPrompt(), buildHistoryForAI());
+    history.push({role:'assistant', content: raw});
+
+    let parsed = safeParseGM(raw);
+
+    // 비한국어 문자가 감지되면 교정 요청
+    if (CHAR.lang === 'ko' &&
+        (hasForeignChars(parsed.story || '') || parsed.choices?.some(c => hasForeignChars(c)))) {
+      parsed = await repairForeignChars(parsed);
+    }
+
+    applyResult(parsed, userMsg);
+
+  } catch(err) {
+    document.getElementById('story-text').innerHTML =
+      `<p style="color:#e06060">오류: ${err.message}</p><p style="color:#5a5030;font-size:11px">API 키를 확인하거나 잠시 후 다시 시도하세요.</p>`;
+    renderChoices(['다시 시도']);
+    document.querySelector('.choice-btn')?.addEventListener('click', () => callGM(userMsg));
+  }
+  isLoading = false;
+  setUI(true);
+}
+
+function applyResult(p, userMsg) {
+  if (p.hp_delta) {
+    CHAR.hp = Math.max(0, Math.min(CHAR.maxHp, CHAR.hp + p.hp_delta));
+  }
+  if (p.mp_delta) {
+    CHAR.mp = Math.max(0, Math.min(CHAR.maxMp, CHAR.mp + p.mp_delta));
+  }
+  if (p.xp_gained && p.xp_gained > 0 && CHAR.level < 12) {
+    CHAR.xp += p.xp_gained;
+    const newLevel = typeof calcLevel === 'function' ? calcLevel(CHAR.xp) : CHAR.level;
+    if (newLevel > CHAR.level) {
+      const oldLevel = CHAR.level;
+      CHAR.level = newLevel;
+      const hpBefore = CHAR.maxHp;
+      const mpBefore = CHAR.maxMp;
+      if (typeof calcMaxHp === 'function') {
+        CHAR.maxHp = calcMaxHp(CHAR.job, CHAR.level, CHAR.stats);
+        CHAR.hp = Math.min(CHAR.hp + (CHAR.maxHp - hpBefore), CHAR.maxHp);
+        CHAR.maxMp = calcMaxMp(CHAR.job, CHAR.level, CHAR.stats);
+        CHAR.mp = Math.min(CHAR.mp + (CHAR.maxMp - mpBefore), CHAR.maxMp);
+      }
+      setTimeout(() => {
+        const el = document.getElementById('story-text');
+        const notice = document.createElement('p');
+        notice.style.cssText = 'color:#c8b97a;border:1px solid #c8b97a44;padding:8px;margin-top:12px;font-family:Noto Sans KR,sans-serif;font-size:12px;letter-spacing:0.1em';
+        notice.textContent = `★ 레벨 업! Lv ${oldLevel} → Lv ${CHAR.level} — 최대 HP/MP가 증가했습니다.`;
+        el.appendChild(notice);
+      }, 100);
+    }
+  }
+  updateHUD();
+  if (p.status?.length) {
+    CHAR.status = p.status;
+    document.getElementById('status-tags').innerHTML = p.status.map(s=>`<span class="stag">${s}</span>`).join('');
+  }
+  if(p.chapter) document.getElementById('chapter-label').textContent = p.chapter;
+
+  showCreaturePanel(p.creature_id || '');
+
+  const el = document.getElementById('story-text');
+  el.innerHTML = (p.story||'').split('\n\n').map(para=>`<p>${para}</p>`).join('');
+
+  renderChoices(p.choices||[]);
+
+  if(userMsg) {
+    logItems.push({choice: userMsg, story: (p.story||'').slice(0,80)+'…'});
+    renderLog();
+  }
+  saveGame();
+}
+
+function renderChoices(choices) {
+  const el = document.getElementById('choices');
+  el.innerHTML = '';
+  choices.forEach((c, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.innerHTML = `<span class="choice-num">${i+1}.</span><span>${c}</span>`;
+    btn.addEventListener('click', () => { if(!isLoading) callGM(c); });
+    el.appendChild(btn);
+  });
+}
+
+function setUI(enabled) {
+  document.querySelectorAll('.choice-btn').forEach(b => b.disabled = !enabled);
+  document.getElementById('send-btn').disabled = !enabled;
+  document.getElementById('free-input').disabled = !enabled;
+}
+
+function showLoading() {
+  document.getElementById('story-text').innerHTML =
+    '<div class="loading-dots"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div>';
+  document.getElementById('choices').innerHTML = '';
+}
+
+function updateHUD() {
+  const hpPct = Math.round((CHAR.hp / CHAR.maxHp) * 100);
+  document.getElementById('hud-hp').textContent = `${CHAR.hp} / ${CHAR.maxHp}`;
+  const hpBar = document.getElementById('hp-bar');
+  hpBar.style.width = hpPct + '%';
+  hpBar.className = 'hp-fill' + (hpPct <= 30 ? ' low' : '');
+
+  const mpPct = CHAR.maxMp > 0 ? Math.round((CHAR.mp / CHAR.maxMp) * 100) : 0;
+  document.getElementById('hud-mp').textContent = `${CHAR.mp} / ${CHAR.maxMp}`;
+  document.getElementById('mp-bar').style.width = mpPct + '%';
+
+  document.getElementById('hud-lv').textContent = `Lv ${CHAR.level}`;
+  const nextXp = XP_LEVELS[CHAR.level] ?? '—';
+  document.getElementById('hud-xp').textContent = `XP ${CHAR.xp.toLocaleString()} / ${typeof nextXp === 'number' ? nextXp.toLocaleString() : nextXp}`;
+}
+
+function renderLog() {
+  document.getElementById('log-list').innerHTML =
+    logItems.slice(-10).reverse().map(item=>
+      `<div class="log-item"><span class="log-choice">▶ ${item.choice}</span><br>${item.story}</div>`
+    ).join('');
+}
+
+document.getElementById('send-btn').addEventListener('click', () => {
+  const v = document.getElementById('free-input').value.trim();
+  if(!v||isLoading) return;
+  document.getElementById('free-input').value='';
+  callGM(v);
+});
+document.getElementById('free-input').addEventListener('keydown', e => {
+  if(e.key==='Enter') {
+    const v = e.target.value.trim();
+    if(!v||isLoading) return;
+    e.target.value='';
+    callGM(v);
+  }
+});
+document.getElementById('apikey-btn').addEventListener('click', () => {
+  const setup = document.getElementById('api-setup');
+  const visible = setup.style.display !== 'none';
+  setup.style.display = visible ? 'none' : 'block';
+  selectProvider(currentProvider);
+});
+document.getElementById('log-toggle').addEventListener('click', () => {
+  const wrap = document.getElementById('log-wrap');
+  const open = wrap.classList.toggle('open');
+  document.getElementById('log-toggle').textContent = open?'기록 ▴':'기록 ▾';
+});
+
+// 저장된 데이터를 현재 세션에 적용
+function applyResume(save) {
+  const gs    = save.gameState || {};
+  CHAR.level  = gs.level  ?? 1;
+  CHAR.xp     = gs.xp     ?? 0;
+  CHAR.maxHp  = gs.maxHp  ?? (typeof calcMaxHp === 'function' ? calcMaxHp(CHAR.job, CHAR.level, CHAR.stats) : 100);
+  CHAR.hp     = gs.hp     ?? CHAR.maxHp;
+  CHAR.maxMp  = gs.maxMp  ?? (typeof calcMaxMp === 'function' ? calcMaxMp(CHAR.job, CHAR.level, CHAR.stats) : 50);
+  CHAR.mp     = gs.mp     ?? CHAR.maxMp;
+  CHAR.status = gs.status ?? ['정상'];
+  history     = save.history || [];
+  updateHUD();
+  document.getElementById('status-tags').innerHTML =
+    CHAR.status.map(s=>`<span class="stag">${s}</span>`).join('');
+  if (save.chapter) document.getElementById('chapter-label').textContent = save.chapter;
+  callGM('게임을 이어합니다. 직전 상황을 한 문장으로 간략히 요약한 뒤 바로 다음 장면을 시작해주세요.');
+}
+
+// 이어하기 배너 표시
+let _pendingSave = null;
+function showResumeBanner(save) {
+  _pendingSave = save;
+  const turns = save.turns ?? save.history?.length ?? 0;
+  const chap  = save.chapter && save.chapter !== '— 대기 중 —' ? save.chapter : '';
+  const info  = chap ? `${chap} (${turns}턴)` : `${turns}턴 진행됨`;
+  document.getElementById('resume-msg').textContent = `저장된 진행 상황이 있습니다 — ${info}`;
+  document.getElementById('resume-banner').classList.add('show');
+}
+function hideResumeBanner() {
+  document.getElementById('resume-banner').classList.remove('show');
+  _pendingSave = null;
+}
+
+document.getElementById('resume-yes').addEventListener('click', () => {
+  if (_pendingSave) applyResume(_pendingSave);
+  hideResumeBanner();
+});
+document.getElementById('resume-no').addEventListener('click', hideResumeBanner);
+
+// 포커스/화면 복귀 시 저장 상태 확인
+let _lastFocusCheck = 0;
+async function checkResume() {
+  if (isLoading) return;
+  const now = Date.now();
+  if (now - _lastFocusCheck < 5000) return; // 5초 디바운스
+  _lastFocusCheck = now;
+
+  const save = await loadSave();
+  if (!save) return;
+  if (save.character?.cont !== CHAR.cont || save.character?.job !== CHAR.job) return;
+  const savedTurns   = save.turns ?? save.history?.length ?? 0;
+  const currentTurns = history.length;
+  if (savedTurns > currentTurns) showResumeBanner(save);
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') checkResume();
+});
+window.addEventListener('focus', checkResume);
+
+async function startGame() {
+  const save = await loadSave();
+  if (save && save.character?.cont === CHAR.cont && save.character?.job === CHAR.job
+      && (save.turns ?? save.history?.length ?? 0) > 0) {
+    _lastFocusCheck = Date.now(); // checkResume 이중 실행 방지
+    showResumeBanner(save);
+    // 배너를 보여주고 사용자 선택 대기 — 새 게임은 '무시' 클릭 시 시작
+    document.getElementById('resume-no').addEventListener('click', () => {
+      callGM(`게임을 시작합니다. 테라 노바의 첫 장면을 시작해주세요. ${jobName}(${contName} 출신)으로서 테라 노바에 막 도착한 상황으로 시작해 주세요.`);
+    }, { once: true });
+    return;
+  }
+  callGM(`게임을 시작합니다. 테라 노바의 첫 장면을 시작해주세요. ${jobName}(${contName} 출신)으로서 테라 노바에 막 도착한 상황으로 시작해 주세요.`);
+}
+
+// HUD 초기값 표시
+updateHUD();
+
+// API 키 있으면 바로 시작
+if(API_KEY) startGame();
+</script>
+</body>
+</html>

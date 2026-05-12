@@ -1,0 +1,31 @@
+{
+  "name": "5continentschronicles",
+  "version": "1.0.0",
+  "description": "d&d 규칙 기반의 텍스트 게임 (게임 마스터는 AI가)",
+  "keywords": [
+    "d&d",
+    "original",
+    "story"
+  ],
+  "homepage": "https://github.com/bomdol/fivecontinentschronicles#readme",
+  "bugs": {
+    "url": "https://github.com/bomdol/fivecontinentschronicles/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bomdol/fivecontinentschronicles.git"
+  },
+  "license": "ISC",
+  "author": "bomdol",
+  "type": "commonjs",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "firebase": "^12.13.0"
+  }
+}

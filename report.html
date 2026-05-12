@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오대륙전기 — 프로젝트 보고서</title>
+<style>
+:root{
+  --bg:#0a0a08;--bg2:#0e0e0b;--bg3:#111109;
+  --gold:#c8b97a;--gold-l:#e8d48a;--gold-d:#5a5130;
+  --green:#5dcaa5;--blue:#8888dd;--red:#e06060;--amber:#c8a84a;
+  --border:#2a2518;--border2:#3a3018;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--gold);font-family:'Noto Sans KR','Apple SD Gothic Neo',sans-serif;padding:0}
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;900&family=Noto+Sans+KR:wght@300;400;500&display=swap');
+
+/* 헤더 */
+.report-header{background:#080807;border-bottom:1px solid var(--border2);padding:32px 40px 24px;text-align:center}
+.report-header pre{font-family:'Courier New',monospace;font-size:10px;line-height:1.2;color:var(--gold-d);margin-bottom:16px}
+.report-title{font-size:28px;font-weight:900;letter-spacing:0.2em;color:var(--gold-l);font-family:'Noto Serif KR',serif;margin-bottom:6px}
+.report-sub{font-size:11px;letter-spacing:0.4em;color:var(--gold-d)}
+.report-meta{display:flex;justify-content:center;gap:24px;margin-top:16px;font-size:11px;color:var(--gold-d)}
+.report-meta span{display:flex;align-items:center;gap:5px}
+
+/* 레이아웃 */
+.container{max-width:900px;margin:0 auto;padding:32px 24px}
+.section{margin-bottom:40px}
+.section-title{font-size:13px;font-weight:600;letter-spacing:0.35em;color:var(--gold-d);border-bottom:1px solid var(--border2);padding-bottom:8px;margin-bottom:20px;text-transform:uppercase}
+
+/* 마일스톤 타임라인 */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:grid;grid-template-columns:120px 20px 1fr;gap:0;align-items:start}
+.tl-week{font-size:11px;color:var(--gold-d);padding:12px 12px 12px 0;text-align:right;line-height:1.4}
+.tl-line{display:flex;flex-direction:column;align-items:center}
+.tl-dot{width:12px;height:12px;border-radius:50%;margin-top:14px;flex-shrink:0;z-index:1}
+.tl-vline{flex:1;width:1px;background:var(--border);margin-top:2px}
+.tl-item:last-child .tl-vline{display:none}
+.tl-content{padding:10px 0 20px 16px}
+.tl-title{font-size:14px;font-weight:500;color:var(--gold);margin-bottom:4px}
+.tl-desc{font-size:12px;color:#6a6040;line-height:1.65}
+.tl-tasks{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.tl-task{font-size:10px;padding:2px 8px;border-radius:2px}
+
+/* 진행 상태 */
+.status-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.status-card{border:1px solid var(--border);background:var(--bg2);padding:14px}
+.sc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sc-title{font-size:13px;font-weight:500;color:var(--gold)}
+.sc-badge{font-size:10px;padding:2px 8px;border-radius:2px}
+.badge-done{background:#0a2a1a;border:1px solid #1a4a2a;color:var(--green)}
+.badge-wip{background:#2a2010;border:1px solid #5a4a20;color:var(--amber)}
+.badge-todo{background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a}
+.sc-items{list-style:none}
+.sc-item{font-size:11px;color:#6a6040;padding:3px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:7px;line-height:1.5}
+.sc-item:last-child{border-bottom:none}
+.sc-item::before{content:'·';color:var(--gold-d);flex-shrink:0;margin-top:1px}
+
+/* 아키텍처 */
+.arch-row{display:flex;align-items:stretch;gap:0;border:1px solid var(--border);overflow:hidden;margin-bottom:20px}
+.arch-box{flex:1;padding:14px 12px;text-align:center;border-right:1px solid var(--border);background:var(--bg2)}
+.arch-box:last-child{border-right:none}
+.arch-icon{font-size:22px;margin-bottom:6px;color:var(--gold-d)}
+.arch-name{font-size:12px;font-weight:500;color:var(--gold);margin-bottom:3px}
+.arch-sub{font-size:10px;color:var(--gold-d);line-height:1.5}
+.arch-arr{width:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--gold-d);font-size:14px;background:#080807;border-right:1px solid var(--border)}
+
+/* 파일 구조 */
+.file-tree{background:var(--bg2);border:1px solid var(--border);padding:16px;font-family:'Courier New',monospace;font-size:12px;color:#6a6040;line-height:1.9}
+.file-tree .dir{color:var(--gold)}
+.file-tree .file{color:#7a7060}
+.file-tree .desc{color:#4a4428}
+
+/* 기술 스택 */
+.stack-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.stack-card{border:1px solid var(--border);background:var(--bg2);padding:12px 14px}
+.stack-layer{font-size:9px;color:var(--gold-d);letter-spacing:0.25em;margin-bottom:4px;text-transform:uppercase}
+.stack-name{font-size:14px;font-weight:500;color:var(--gold);margin-bottom:3px}
+.stack-why{font-size:11px;color:#6a6040;line-height:1.5}
+
+/* 다음 단계 */
+.next-list{display:flex;flex-direction:column;gap:8px}
+.next-item{display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:start;border:1px solid var(--border);background:var(--bg2);padding:12px 14px}
+.next-num{font-size:12px;font-weight:500;color:var(--gold-d)}
+.next-title{font-size:13px;font-weight:500;color:var(--gold);margin-bottom:3px}
+.next-desc{font-size:11px;color:#6a6040;line-height:1.55}
+.priority{font-size:9px;padding:2px 7px;border-radius:2px;align-self:start;white-space:nowrap}
+.p-high{background:#1f0a0a;border:1px solid #4a1a1a;color:var(--red)}
+.p-mid{background:#1a1a0a;border:1px solid #4a4a1a;color:var(--amber)}
+.p-low{background:#0a0a1a;border:1px solid #1a1a4a;color:var(--blue)}
+
+/* 세계관 요약 */
+.world-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.world-card{border:1px solid var(--border);background:var(--bg2);padding:12px}
+.world-icon{font-size:18px;margin-bottom:6px}
+.world-name{font-size:12px;font-weight:500;color:var(--gold);margin-bottom:2px}
+.world-flavor{font-size:9px;color:var(--gold-d);letter-spacing:0.2em;margin-bottom:5px}
+.world-tags{display:flex;flex-wrap:wrap;gap:3px}
+.world-tag{font-size:9px;padding:1px 5px;border:1px solid var(--border2);color:#6a6040}
+
+/* 주석 */
+.note{background:var(--bg2);border-left:3px solid var(--gold-d);padding:10px 14px;font-size:11px;color:#6a6040;line-height:1.7;margin-top:16px}
+.note b{color:var(--gold)}
+
+footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-top:1px solid var(--border);letter-spacing:0.2em}
+</style>
+</head>
+<body>
+
+<div class="report-header">
+<pre>
+  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  ░░   오 대 륙 전 기   PROJECT REPORT   ░░
+  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+</pre>
+<div class="report-title">오 대 륙 전 기</div>
+<div class="report-sub">FIVE CONTINENTS CHRONICLES — 개발 진행 보고서</div>
+<div class="report-meta">
+  <span>📅 2026년 5월</span>
+  <span>🎯 AI 텍스트 어드벤처 게임</span>
+  <span>📱 Android WebView 타깃</span>
+</div>
+</div>
+
+<div class="container">
+
+<!-- 프로젝트 개요 -->
+<div class="section">
+  <div class="section-title">01 · 프로젝트 개요</div>
+  <p style="font-size:13px;color:#8a7e52;line-height:1.9;margin-bottom:16px">
+    Claude API를 게임 마스터로 활용하는 AI 텍스트 어드벤처 게임.
+    심심풀이 개인 프로젝트이자 인공지능 활용 학습 목적.
+    독창적인 오리지널 세계관(판게아 분열 5대륙)을 기반으로 하며,
+    D&amp;D 방식 능력치 시스템과 20개국 다국어를 지원한다.
+    최종 배포 형태는 Capacitor.js로 패키징한 Android APK이며,
+    세이브 데이터는 Google Sheets에 저장한다.
+  </p>
+  <div class="arch-row">
+    <div class="arch-box"><div class="arch-icon">🌐</div><div class="arch-name">React Web App</div><div class="arch-sub">UI / 게임 화면<br>다국어 i18n</div></div>
+    <div class="arch-arr">›</div>
+    <div class="arch-box"><div class="arch-icon">🤖</div><div class="arch-name">Claude API</div><div class="arch-sub">게임 마스터<br>스토리 생성</div></div>
+    <div class="arch-arr">›</div>
+    <div class="arch-box"><div class="arch-icon">📊</div><div class="arch-name">Google Sheets</div><div class="arch-sub">세이브 파일<br>히스토리 보관</div></div>
+    <div class="arch-arr">›</div>
+    <div class="arch-box"><div class="arch-icon">📱</div><div class="arch-name">Capacitor.js</div><div class="arch-sub">Android APK<br>WebView 껍데기</div></div>
+  </div>
+</div>
+
+<!-- 마일스톤 -->
+<div class="section">
+  <div class="section-title">02 · 개발 마일스톤</div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-week">1주차<br><span style="color:var(--green);font-size:10px">완료</span></div>
+      <div class="tl-line"><div class="tl-dot" style="background:var(--green)"></div><div class="tl-vline"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">세계관 · 기획 · UI 프로토타입</div>
+        <div class="tl-desc">오대륙전기 세계관 설정, 대륙별 특성과 세력 관계 정립. 언어 선택·인트로·캐릭터 선택 화면 구현.</div>
+        <div class="tl-tasks">
+          <span class="tl-task" style="background:#0a2a1a;border:1px solid #1a4a2a;color:var(--green)">세계관 설정</span>
+          <span class="tl-task" style="background:#0a2a1a;border:1px solid #1a4a2a;color:var(--green)">20개국 언어 선택</span>
+          <span class="tl-task" style="background:#0a2a1a;border:1px solid #1a4a2a;color:var(--green)">인트로 화면</span>
+          <span class="tl-task" style="background:#0a2a1a;border:1px solid #1a4a2a;color:var(--green)">대륙/직업/능력치 선택</span>
+          <span class="tl-task" style="background:#0a2a1a;border:1px solid #1a4a2a;color:var(--green)">D&amp;D 수정치 시스템</span>
+          <span class="tl-task" style="background:#0a2a1a;border:1px solid #1a4a2a;color:var(--green)">Claude API 게임플레이</span>
+        </div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-week">2주차<br><span style="color:var(--amber);font-size:10px">진행 중</span></div>
+      <div class="tl-line"><div class="tl-dot" style="background:var(--amber)"></div><div class="tl-vline"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">게임 시스템 완성 · Google 연동</div>
+        <div class="tl-desc">게임 플레이 화면 완성, Google Sheets 세이브, OAuth 로그인, 다중 AI 제공자 전환.</div>
+        <div class="tl-tasks">
+          <span class="tl-task" style="background:#2a2010;border:1px solid #5a4a20;color:var(--amber)">게임플레이 화면 완성</span>
+          <span class="tl-task" style="background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a">Google Sheets 세이브</span>
+          <span class="tl-task" style="background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a">OAuth 로그인</span>
+          <span class="tl-task" style="background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a">Claude/Gemini 전환</span>
+        </div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-week">3주차</div>
+      <div class="tl-line"><div class="tl-dot" style="background:var(--border)"></div><div class="tl-vline"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">세계관 확장 · 콘텐츠 보강</div>
+        <div class="tl-desc">세계관 시기(초기/중기/후기) 분기, 미르 조우 이벤트, 세력별 퀘스트 라인 추가.</div>
+        <div class="tl-tasks">
+          <span class="tl-task" style="background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a">시기 분기</span>
+          <span class="tl-task" style="background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a">미르 이벤트</span>
+          <span class="tl-task" style="background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a">세력 퀘스트</span>
+        </div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-week">4주차</div>
+      <div class="tl-line"><div class="tl-dot" style="background:var(--border)"></div></div>
+      <div class="tl-content">
+        <div class="tl-title">Android 패키징 · 배포</div>
+        <div class="tl-desc">Capacitor.js로 Android APK 빌드. 스플래시 화면, 초기 설정(계정 연결), 최종 테스트.</div>
+        <div class="tl-tasks">
+          <span class="tl-task" style="background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a">Capacitor 세팅</span>
+          <span class="tl-task" style="background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a">APK 빌드</span>
+          <span class="tl-task" style="background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a">최종 테스트</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 현재 진행 상태 -->
+<div class="section">
+  <div class="section-title">03 · 현재 진행 상태</div>
+  <div class="status-grid">
+    <div class="status-card">
+      <div class="sc-header"><span class="sc-title">언어 선택 화면</span><span class="sc-badge badge-done">완료</span></div>
+      <ul class="sc-items">
+        <li class="sc-item">20개 언어 지원 (인구 1천만 이상)</li>
+        <li class="sc-item">10개 내장 언어 (한·영·중·일·스·프·아·포·러·베)</li>
+        <li class="sc-item">나머지 10개는 AI 런타임 번역</li>
+        <li class="sc-item">언어별 UI 즉시 전환 미리보기</li>
+      </ul>
+    </div>
+    <div class="status-card">
+      <div class="sc-header"><span class="sc-title">인트로 화면</span><span class="sc-badge badge-done">완료</span></div>
+      <ul class="sc-items">
+        <li class="sc-item">아스키 아트 + 게임 로고</li>
+        <li class="sc-item">다국어 세계관 소개 문구</li>
+        <li class="sc-item">페이드인 애니메이션</li>
+      </ul>
+    </div>
+    <div class="status-card">
+      <div class="sc-header"><span class="sc-title">대륙 선택</span><span class="sc-badge badge-done">완료</span></div>
+      <ul class="sc-items">
+        <li class="sc-item">4대륙 (Arcania·Mechanica·Wuxia·Psychia)</li>
+        <li class="sc-item">대륙별 특성·태그·대륙 보너스 표시</li>
+        <li class="sc-item">5개 언어 다국어 지원</li>
+      </ul>
+    </div>
+    <div class="status-card">
+      <div class="sc-header"><span class="sc-title">직업 선택</span><span class="sc-badge badge-done">완료</span></div>
+      <ul class="sc-items">
+        <li class="sc-item">대륙별 5종 (전사/마법/도적/지원/특수)</li>
+        <li class="sc-item">특수 직업 ✦ 배지 표시</li>
+        <li class="sc-item">직업별 능력치 미니 바 표시</li>
+        <li class="sc-item">5개 언어 직업명·설명 번역</li>
+      </ul>
+    </div>
+    <div class="status-card">
+      <div class="sc-header"><span class="sc-title">능력치 조정</span><span class="sc-badge badge-done">완료</span></div>
+      <ul class="sc-items">
+        <li class="sc-item">D&amp;D 6 능력치 (STR/DEX/CON/INT/WIS/CHA)</li>
+        <li class="sc-item">직업 기본값: 0~100 → 8~15 스케일</li>
+        <li class="sc-item">추가 점수 6점, ±2 조정</li>
+        <li class="sc-item">수정치 자동 계산 표시</li>
+        <li class="sc-item">대륙 보너스 별도 태그 표시</li>
+      </ul>
+    </div>
+    <div class="status-card">
+      <div class="sc-header"><span class="sc-title">게임 플레이</span><span class="sc-badge badge-wip">구현 중</span></div>
+      <ul class="sc-items">
+        <li class="sc-item">Claude API 직접 연결</li>
+        <li class="sc-item">HP/상태 HUD</li>
+        <li class="sc-item">선택지 4개 버튼</li>
+        <li class="sc-item">자유 행동 텍스트 입력</li>
+        <li class="sc-item">턴 기록 로그</li>
+        <li class="sc-item" style="color:#4a4428">Google Sheets 저장 미구현</li>
+      </ul>
+    </div>
+    <div class="status-card">
+      <div class="sc-header"><span class="sc-title">Google Sheets 저장</span><span class="sc-badge badge-todo">예정</span></div>
+      <ul class="sc-items">
+        <li class="sc-item">OAuth 2.0 로그인</li>
+        <li class="sc-item">대화 히스토리 JSON 저장</li>
+        <li class="sc-item">이어하기 기능</li>
+      </ul>
+    </div>
+    <div class="status-card">
+      <div class="sc-header"><span class="sc-title">Android 패키징</span><span class="sc-badge badge-todo">예정</span></div>
+      <ul class="sc-items">
+        <li class="sc-item">Capacitor.js WebView 래핑</li>
+        <li class="sc-item">초기 설정 (Google 계정 + AI API 키)</li>
+        <li class="sc-item">APK 빌드 및 배포</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 세계관 -->
+<div class="section">
+  <div class="section-title">04 · 세계관 설정 요약</div>
+  <div class="world-grid">
+    <div class="world-card">
+      <div class="world-icon">✦</div>
+      <div class="world-name">마법 대륙</div>
+      <div class="world-flavor">ARCANIA</div>
+      <div class="world-tags"><span class="world-tag">마나 메탈</span><span class="world-tag">금서</span><span class="world-tag">500명 파견</span></div>
+    </div>
+    <div class="world-card">
+      <div class="world-icon">⚙</div>
+      <div class="world-name">과학 대륙</div>
+      <div class="world-flavor">MECHANICA</div>
+      <div class="world-tags"><span class="world-tag">비행선</span><span class="world-tag">철 고갈</span><span class="world-tag">새사람 프로젝트</span></div>
+    </div>
+    <div class="world-card">
+      <div class="world-icon">彡</div>
+      <div class="world-name">무협 대륙</div>
+      <div class="world-flavor">WUXIA</div>
+      <div class="world-tags"><span class="world-tag">흑도·백도</span><span class="world-tag">내공</span><span class="world-tag">달마 전설</span></div>
+    </div>
+    <div class="world-card">
+      <div class="world-icon">◎</div>
+      <div class="world-name">초능력 대륙</div>
+      <div class="world-flavor">PSYCHIA</div>
+      <div class="world-tags"><span class="world-tag">텔레파시</span><span class="world-tag">착취당함</span><span class="world-tag">마법 밀약</span></div>
+    </div>
+    <div class="world-card">
+      <div class="world-icon">🏔</div>
+      <div class="world-name">테라 노바</div>
+      <div class="world-flavor">TERRA NOVA</div>
+      <div class="world-tags"><span class="world-tag">북극점</span><span class="world-tag">철광</span><span class="world-tag">미르(드래곤)</span></div>
+    </div>
+  </div>
+  <div class="note">
+    <b>달마 전설 기원:</b> 마법 대륙 어부가 금서 농경 마법서를 들고 바다에 나섰다가 무협 대륙에 표류.
+    혼자 마법을 잘못 익혀 자연의 힘 대신 몸 속에 저장하는 방식으로 변형 → 내공의 시초가 됨.
+    시약을 끓여 마시는 방식은 마법 대륙 전통에서 유래. 무림은 비정통으로 취급하나 그 힘은 압도적.
+  </div>
+</div>
+
+<!-- 기술 스택 -->
+<div class="section">
+  <div class="section-title">05 · 기술 스택</div>
+  <div class="stack-grid">
+    <div class="stack-card">
+      <div class="stack-layer">프론트엔드</div>
+      <div class="stack-name">React + Vite</div>
+      <div class="stack-why">컴포넌트 구조로 화면 관리. 상태(state)로 게임 진행 관리.</div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-layer">AI 엔진</div>
+      <div class="stack-name">Claude API</div>
+      <div class="stack-why">claude-sonnet-4-20250514. 게임 마스터 역할. JSON 응답 형식.</div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-layer">저장소</div>
+      <div class="stack-name">Google Sheets</div>
+      <div class="stack-why">세이브 파일. 사람이 직접 읽고 수정 가능. 디버깅 편의성.</div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-layer">모바일</div>
+      <div class="stack-name">Capacitor.js</div>
+      <div class="stack-why">React 웹앱 → Android APK. 별도 네이티브 코드 불필요.</div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-layer">다국어</div>
+      <div class="stack-name">i18n 커스텀</div>
+      <div class="stack-why">10개 내장 번역. 나머지 10개는 Claude API 런타임 번역.</div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-layer">인증</div>
+      <div class="stack-name">Google OAuth 2.0</div>
+      <div class="stack-why">Google Sheets 접근용. Sheets API 연동.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 파일 구조 -->
+<div class="section">
+  <div class="section-title">06 · 현재 파일 구조</div>
+  <div class="file-tree">
+<span class="dir">fivecontinentschronicle/</span>
+├── <span class="file">01_character_select.html</span>  <span class="desc">← 언어선택+인트로+캐릭터선택 통합</span>
+├── <span class="file">02_gameplay.html</span>          <span class="desc">← Claude API 연결 게임 플레이</span>
+├── <span class="file">worldbuilding.md</span>          <span class="desc">← 세계관 설정 문서</span>
+└── <span class="file">report.html</span>               <span class="desc">← 이 보고서</span>
+
+<span style="color:#3a3218;margin-top:8px;display:block">── 향후 추가 예정 ──</span>
+├── <span class="file">src/</span>
+│   ├── <span class="file">App.jsx</span>                <span class="desc">← React 진입점</span>
+│   ├── <span class="file">i18n/</span>                  <span class="desc">← 언어별 번역 파일</span>
+│   ├── <span class="file">screens/</span>               <span class="desc">← 화면 컴포넌트</span>
+│   └── <span class="file">api/</span>                   <span class="desc">← Claude API, Sheets API</span>
+└── <span class="file">android/</span>                   <span class="desc">← Capacitor Android 프로젝트</span>
+  </div>
+</div>
+
+<!-- 다음 단계 -->
+<div class="section">
+  <div class="section-title">07 · 다음 개발 단계</div>
+  <div class="next-list">
+    <div class="next-item">
+      <div class="next-num">1</div>
+      <div>
+        <div class="next-title">React 프로젝트로 전환</div>
+        <div class="next-desc">현재 HTML 단일 파일 → Vite + React 구조로 마이그레이션. 컴포넌트 분리, 라우터 설정.</div>
+      </div>
+      <span class="priority p-high">높음</span>
+    </div>
+    <div class="next-item">
+      <div class="next-num">2</div>
+      <div>
+        <div class="next-title">Google Sheets 세이브 시스템</div>
+        <div class="next-desc">OAuth 2.0 로그인 → Sheets API로 대화 히스토리 저장 → 이어하기 기능.</div>
+      </div>
+      <span class="priority p-high">높음</span>
+    </div>
+    <div class="next-item">
+      <div class="next-num">3</div>
+      <div>
+        <div class="next-title">다중 AI 제공자 지원</div>
+        <div class="next-desc">AI 추상화 레이어: aiProvider.sendMessage(). Claude / Gemini / Copilot 전환 가능하도록.</div>
+      </div>
+      <span class="priority p-mid">중간</span>
+    </div>
+    <div class="next-item">
+      <div class="next-num">4</div>
+      <div>
+        <div class="next-title">세계관 시기 분기 시스템</div>
+        <div class="next-desc">개척 초기 / 중원전쟁기 / 결전 전야 / 달마의 시대 — 시기별 다른 시작 상황.</div>
+      </div>
+      <span class="priority p-mid">중간</span>
+    </div>
+    <div class="next-item">
+      <div class="next-num">5</div>
+      <div>
+        <div class="next-title">Capacitor Android 패키징</div>
+        <div class="next-desc">npx cap add android → APK 빌드. 스플래시 화면. 앱 초기 설정 (API 키, Google 계정).</div>
+      </div>
+      <span class="priority p-low">이후</span>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<footer>
+  오대륙전기 (Five Continents Chronicles) · 개인 프로젝트 · 2026
+</footer>
+</body>
+</html>
