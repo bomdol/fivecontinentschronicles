@@ -17,7 +17,30 @@ function getPlayerDex(statsStr) {
   return m ? +m[1] : 10;
 }
 
-function safeParseGM(raw, chapterLabel, charStatus) {
+const FALLBACK_CHOICES = {
+  ko: ['계속 살핀다','다른 방향으로 간다','잠시 기다린다','상황을 파악한다'],
+  en: ['Continue observing','Go another way','Wait a moment','Assess the situation'],
+  zh: ['继续观察','换个方向','稍等片刻','判断形势'],
+  ja: ['様子を見る','別の方向へ','しばらく待つ','状況を把握する'],
+  es: ['Seguir observando','Ir por otro camino','Esperar un momento','Evaluar la situación'],
+  fr: ['Continuer à observer','Aller dans une autre direction','Attendre un moment','Évaluer la situation'],
+  ar: ['الاستمرار في المراقبة','الذهاب في اتجاه آخر','الانتظار لحظة','تقييم الوضع'],
+  pt: ['Continuar observando','Ir por outro caminho','Esperar um momento','Avaliar a situação'],
+  ru: ['Продолжать наблюдать','Пойти в другую сторону','Подождать немного','Оценить ситуацию'],
+  vi: ['Tiếp tục quan sát','Đi hướng khác','Chờ một lúc','Đánh giá tình hình'],
+  hi: ['देखते रहो','दूसरी दिशा में जाओ','थोड़ा इंतजार करो','स्थिति का आकलन करो'],
+  id: ['Terus amati','Pergi ke arah lain','Tunggu sebentar','Nilai situasi'],
+  de: ['Weiter beobachten','In eine andere Richtung gehen','Einen Moment warten','Die Lage einschätzen'],
+  tr: ['Gözlemlemeye devam et','Başka yöne git','Biraz bekle','Durumu değerlendir'],
+  th: ['สังเกตต่อไป','ไปทิศทางอื่น','รอสักครู่','ประเมินสถานการณ์'],
+  it: ["Continuare a osservare","Andare in un'altra direzione","Aspettare un momento","Valutare la situazione"],
+  pl: ['Obserwować dalej','Iść w innym kierunku','Poczekać chwilę','Ocenić sytuację'],
+  uk: ['Продовжувати спостерігати','Піти в інший бік','Зачекати хвилину','Оцінити ситуацію'],
+  nl: ['Blijven observeren','Een andere richting gaan','Even wachten','De situatie inschatten'],
+  ms: ['Terus perhatikan','Pergi ke arah lain','Tunggu sebentar','Nilai keadaan'],
+};
+
+function safeParseGM(raw, chapterLabel, charStatus, lang = 'en') {
   let text = raw.replace(/```json|```/g, '').trim();
   const start = text.indexOf('{');
   const end   = text.lastIndexOf('}');
@@ -32,7 +55,7 @@ function safeParseGM(raw, chapterLabel, charStatus) {
   return {
     chapter: chapterLabel,
     story:   raw,
-    choices: ['계속 살핀다','다른 방향으로 간다','잠시 기다린다','상황을 파악한다'],
+    choices: FALLBACK_CHOICES[lang] ?? FALLBACK_CHOICES.en,
     hp_delta: 0, status: charStatus, items_gained: [], items_lost: [],
   };
 }
@@ -356,9 +379,9 @@ export default function GameplayScreen({ charData, onRestart }) {
 
     try {
       const c = charRef.current;
-      const isCompact = currentProvider === 'groq';
+      const isCompact = historyRef.current.length > 12;
       const msgs = isCompact
-        ? historyRef.current.slice(-8)
+        ? historyRef.current.slice(-12)
         : historyRef.current;
       const msgsForAI = c.lang === 'ko'
         ? msgs.map((m, i) => i === msgs.length-1 && m.role==='user'
@@ -371,7 +394,7 @@ export default function GameplayScreen({ charData, onRestart }) {
       const raw = await callAI(currentProvider, apiKey, sys, msgsForAI);
       historyRef.current = [...historyRef.current, {role:'assistant', content: raw}];
 
-      let parsed = safeParseGM(raw, chapterLabel, charRef.current.status);
+      let parsed = safeParseGM(raw, chapterLabel, charRef.current.status, c.lang);
       if (c.lang === 'ko' &&
           (hasForeignChars(parsed.story||'') || parsed.choices?.some(x => hasForeignChars(x)))) {
         try {
