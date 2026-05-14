@@ -12,7 +12,7 @@
 
 [core]
 project_name = "5continentschronicles"
-document_output_language = "English"
+document_output_language = "한국어"
 output_folder = "{project-root}/_bmad-output"
 
 [modules.bmm]

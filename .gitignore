@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+*.local
+
+# Capacitor 네이티브 플랫폼 (npx cap add android로 재생성)
+android/
+
+# API 키 파일
+5대륙전기 게임마스터 api key.txt

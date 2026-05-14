@@ -131,6 +131,26 @@ html,body{background:#0a0a08;min-height:100vh}
 .ptab.on{border-color:#c8b97a;color:#c8b97a;background:#1a1810}
 .free-tag{font-size:8px;padding:1px 4px;background:#0a1f0a;border:1px solid #1a4a1a;color:#5dcaa5;margin-left:3px;vertical-align:middle}
 .provider-desc{font-size:11px;color:#6a6040;margin-bottom:8px;font-family:'Noto Sans KR',sans-serif;line-height:1.6}
+
+/* 챕터 진행 바 */
+.chapter-bar{display:none;align-items:center;gap:10px;padding:6px 10px;border:1px solid #2a2518;background:#0c0c09;margin-bottom:10px;font-family:'Noto Sans KR',sans-serif}
+.chapter-bar.show{display:flex}
+.chapter-bar-label{font-size:9px;color:#5a5130;letter-spacing:0.2em;flex-shrink:0;white-space:nowrap}
+.chapter-bar-name{font-size:10px;color:#8a7e52;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chapter-track{width:72px;height:3px;background:#1a1810;flex-shrink:0;border-radius:1px}
+.chapter-track-fill{height:100%;background:#c8b97a66;border-radius:1px;transition:width 0.5s}
+.chapter-turns{font-size:9px;color:#4a4428;flex-shrink:0;white-space:nowrap}
+
+/* 엔딩 오버레이 */
+.ending-overlay{position:fixed;inset:0;background:#040403ee;display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px;z-index:100;text-align:center}
+.ending-overlay.show{display:flex}
+.ending-ascii{font-family:'Courier New',monospace;font-size:9px;line-height:1.3;color:#3a3218;margin-bottom:20px;white-space:pre}
+.ending-title{font-size:20px;font-weight:900;letter-spacing:0.25em;color:#e8d48a;font-family:'Noto Serif KR',serif;margin-bottom:6px}
+.ending-sub{font-size:9px;letter-spacing:0.4em;color:#4a4228;margin-bottom:28px}
+.ending-text{font-size:12px;color:#8a7e52;line-height:2;max-width:420px;font-family:'Noto Serif KR',serif;margin-bottom:8px}
+.ending-hint{font-size:13px;color:#c8b97a;letter-spacing:0.12em;font-family:'Noto Serif KR',serif;border:1px solid #c8b97a33;padding:10px 20px;margin:20px 0 28px}
+.ending-btn{padding:10px 28px;background:transparent;border:1px solid #5a4e28;color:#9a8e52;font-family:'Noto Serif KR',serif;font-size:12px;letter-spacing:0.2em;cursor:pointer;transition:all 0.2s}
+.ending-btn:hover{border-color:#c8b97a;color:#c8b97a;background:#0e0c07}
 </style>
 </head>
 <body>
@@ -191,6 +211,14 @@ html,body{background:#0a0a08;min-height:100vh}
     </div>
   </div>
 
+  <!-- 챕터 진행 바 -->
+  <div class="chapter-bar" id="chapter-bar">
+    <span class="chapter-bar-label" id="chapter-num">챕터 1/8</span>
+    <span class="chapter-bar-name" id="chapter-name">전초기지 건설</span>
+    <div class="chapter-track"><div class="chapter-track-fill" id="chapter-track-fill" style="width:0%"></div></div>
+    <span class="chapter-turns" id="chapter-turns-text">0/10</span>
+  </div>
+
   <!-- 전투 턴 스트립 -->
   <div class="turn-strip" id="turn-strip"></div>
 
@@ -229,6 +257,23 @@ html,body{background:#0a0a08;min-height:100vh}
   <div class="log-wrap" id="log-wrap">
     <div id="log-list"></div>
   </div>
+</div>
+
+<!-- 엔딩 오버레이 -->
+<div class="ending-overlay" id="ending-overlay">
+  <div class="ending-ascii">░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+░░   오 대 륙 전 기  —  에 필 로 그    ░░
+░░   FIVE CONTINENTS CHRONICLES         ░░
+░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░</div>
+  <div class="ending-title">테라 노바 연대기 완결</div>
+  <div class="ending-sub">EPILOGUE · END OF CHAPTER VIII</div>
+  <div class="ending-text">
+    미르의 잔해 속에서 새로운 문명의 흔적이 발견됩니다.<br>
+    대륙 밖에서 미지의 신호가 수신됩니다.<br>
+    테라 노바 연합이 첫 회의를 엽니다.
+  </div>
+  <div class="ending-hint">「테라 노바는 끝이 아니다」</div>
+  <button class="ending-btn" onclick="window.location.href='01_character_select.html'">새 게임 시작</button>
 </div>
 
 <!-- Firebase SDK -->
@@ -301,6 +346,83 @@ const ROLE_HINT={
   en:{'Warrior':'leads combat, absorbs damage','Mage':'named spells, area effects','Tech':'gadgets, improvised solutions','Rogue':'stealth, ambush, intel','Support':'healing, buffs, information','Ranged':'remote attacks and control','Special':'unique unorthodox abilities'},
 };
 
+// 스토리 챕터 데이터 (공통줄거리.txt)
+const STORY_CHAPTERS = [
+  { id:1, name:'전초기지 건설',              turns:10,
+    main:'탐사대가 테라 노바에 도착해 기초 거점을 세움.',
+    events:[
+      {desc:'건설 자재 확보를 위한 주변 탐사', prob:100},
+      {desc:'탐사 도중 괴물과의 조우',         prob:50},
+      {desc:'건설 과정에서 사소한 사고 발생',  prob:30},
+      {desc:'영역을 침범당한 괴물의 습격',     prob:30},
+    ]},
+  { id:2, name:'전초기지 확장 및 광맥 탐사', turns:15,
+    main:'기지가 안정되며 주변 자원과 광맥 탐사 시작.',
+    events:[
+      {desc:'광맥 발견을 위한 정찰 임무',            prob:100},
+      {desc:'정찰 중 괴물 은신처 발견',              prob:40},
+      {desc:'채굴 장비 고장으로 인한 수리 작업',     prob:30},
+      {desc:'탐사대 내부 갈등 — 자원 분배 문제',    prob:20},
+    ]},
+  { id:3, name:'대륙 탐사',                  turns:20,
+    main:'대륙 깊숙한 곳으로 탐사 확장.',
+    events:[
+      {desc:'새로운 광맥 발견',           prob:100},
+      {desc:'고대 문명 흔적 발견',        prob:40},
+      {desc:'갱도 내 괴물과의 전투',      prob:50},
+      {desc:'탐사 중 실종자 발생',        prob:20},
+    ]},
+  { id:4, name:'타 대륙 개척단 조우',        turns:10,
+    main:'다른 대륙에서 온 개척단과 첫 접촉.',
+    events:[
+      {desc:'우호적 교류 — 기술/마법/무공 교환', prob:50},
+      {desc:'긴장된 대치 — 자원 확보 경쟁',      prob:40},
+      {desc:'오해로 인한 충돌',                   prob:20},
+    ]},
+  { id:5, name:'대륙 간 협력과 경쟁',        turns:15,
+    main:'자원 확보와 세력 확장 경쟁.',
+    events:[
+      {desc:'공동 탐사 프로젝트 추진',          prob:40},
+      {desc:'자원 채굴권을 둘러싼 갈등',        prob:50},
+      {desc:'개척단 내부 배신 사건',            prob:20},
+    ]},
+  { id:6, name:'잠든 미르 발견',             turns:8,
+    main:'대륙 깊은 곳에서 전설의 미르(드래곤) 존재 확인.',
+    events:[
+      {desc:'미르의 봉인 흔적 발견',             prob:40},
+      {desc:'미르의 하수인과의 전투',            prob:50},
+      {desc:'미르의 힘에 의해 환경 변화 발생',   prob:30},
+    ]},
+  { id:7, name:'미르와의 결전',              turns:12,
+    main:'모든 개척단이 힘을 합쳐 미르와 결전.',
+    events:[
+      {desc:'미르의 약점을 찾아내는 특별 임무', prob:40},
+      {desc:'전투 중 개척단 간 협력 강화',      prob:50},
+      {desc:'미르의 예기치 못한 변이',          prob:30},
+    ]},
+  { id:8, name:'협력과 신뢰의 자리매김',     turns:6,
+    main:'미르 격퇴 후, 각 개척단이 서로의 영역과 체계를 인정.',
+    events:[
+      {desc:'무공과 마법의 융합 시도',             prob:30},
+      {desc:'초능력과 기술의 상호 보완',           prob:30},
+      {desc:'개척단 연합 결성 — 테라 노바 연합',  prob:50},
+    ]},
+];
+
+function buildChapterPrompt() {
+  const chap = STORY_CHAPTERS[CHAR.storyChapter - 1];
+  if (!chap) return '';
+  const turnsLeft = chap.turns - CHAR.chapterTurns;
+  const nearEnd   = turnsLeft <= 2;
+  const eventList = chap.events.map(e => `  - ${e.desc} (${e.prob}%)`).join('\n');
+  return `[현재 스토리 챕터 — 서사 진행 기준]
+챕터 ${chap.id}/8: ${chap.name}
+진행: ${CHAR.chapterTurns}/${chap.turns}차례 경과 (남은 차례 약 ${turnsLeft}회)
+메인 줄거리: ${chap.main}
+이 챕터에서 발생 가능한 파생 이벤트 (괄호는 권장 발생 확률):
+${eventList}${nearEnd ? `\n⚠ 이 챕터의 마지막 차례입니다. 현재 상황을 자연스럽게 마무리하고 다음 단계로 이어지는 복선을 남겨주세요.` : ''}`;
+}
+
 function L(obj){const c=CHAR?.lang||'ko';return typeof obj==='object'?(obj[c]||obj.ko||obj.en||Object.values(obj)[0]):obj;}
 function topStats(statsStr,n=2){
   const m={};statsStr.split(',').forEach(s=>{const t=s.trim().match(/^(\S+)\s+(\d+)/);if(t)m[t[1]]=+t[2];});
@@ -331,7 +453,9 @@ const CHAR = {
   hp:    100, maxHp: 100,
   mp:    50,  maxMp: 50,
   status: ['정상'],
-  companions: [], // [{id, name, hp, maxHp, status:'active'|'down'|'dead'}]
+  companions: [],   // [{id, name, hp, maxHp, status:'active'|'down'|'dead'}]
+  storyChapter: 1,  // 현재 스토리 챕터 (1~8)
+  chapterTurns: 0,  // 현재 챕터에서 소진된 차례
 };
 // 실제 HP/MP는 lore_jobs_levels.js 로드 후 계산
 if (typeof calcMaxHp === 'function') {
@@ -422,7 +546,8 @@ async function saveGame() {
   const data = {
     character: { lang: CHAR.lang, cont: CHAR.cont, job: CHAR.job, stats: CHAR.stats },
     gameState: { hp: CHAR.hp, maxHp: CHAR.maxHp, mp: CHAR.mp, maxMp: CHAR.maxMp,
-                 level: CHAR.level, xp: CHAR.xp, status: CHAR.status, companions: CHAR.companions },
+                 level: CHAR.level, xp: CHAR.xp, status: CHAR.status, companions: CHAR.companions,
+                 storyChapter: CHAR.storyChapter, chapterTurns: CHAR.chapterTurns },
     chapter:   document.getElementById('chapter-label').textContent,
     history:   history.slice(-10),
     savedAt:   Date.now(),
@@ -558,6 +683,8 @@ ${topStats(CHAR.stats)}로 해당 판정에 강점. ${hint}
 
 ${typeof buildJobSkills === 'function' ? buildJobSkills(CHAR.job, CHAR.level) : ''}
 
+${buildChapterPrompt()}
+
 [진행 규칙]
 1. 매 턴 현장 묘사 2~3문단 후 선택지 4개 제공
 2. 능력치 판정이 필요한 상황엔 판정 결과를 서술
@@ -638,6 +765,8 @@ XP: Lv3=100, Lv5=450, Lv7=1100, Lv9=2300, Lv12=5000. 레벨 차 배율 ×0.1~×2
 
 ${compSection}
 
+${buildChapterPrompt()}
+
 [테라 노바 생물 — enemies 배열로 복수 등장 가능]
 ${creatureList}
 
@@ -664,10 +793,10 @@ const CREATURE_IMAGES = {
 };
 
 const JOB_IMAGES_GP = {
-  kn:'images/마법기사.png',   am:'images/대마법사.png',   ma:null,
+  kn:'images/마법기사.png',   am:'images/대마법사.png',   ma:'images/마법암살자.png',
   hl:'images/성약사.png',     fb:'images/금서사용자.png', ar:'images/기갑병.png',
   iv:'images/발명가.png',     hk:'images/해커.png',       md:'images/의무병.png',
-  nw:null,                    sw:'images/검객.png',       sc:'images/술사.png',
+  nw:'images/새사람.png',     sw:'images/검객.png',       sc:'images/술사.png',
   jk:'images/자객.png',       us:'images/의선.png',       dh:'images/달마내공자.png',
   fc:'images/역장사.png',     tk:'images/염동력자.png',   jy:'images/잠영술사.png',
   ep:'images/초능력의사.png', aw:'images/각성자.png',
@@ -884,6 +1013,49 @@ async function callAI(sys, msgs) {
 }
 // ─────────────────────────────────────────────────────────────────────
 
+// ── 챕터 진행 관리 ───────────────────────────────────────────────────────
+function updateChapterHUD() {
+  const bar  = document.getElementById('chapter-bar');
+  const chap = STORY_CHAPTERS[CHAR.storyChapter - 1];
+  if (!bar || !chap) return;
+  bar.classList.add('show');
+  document.getElementById('chapter-num').textContent        = `챕터 ${chap.id}/8`;
+  document.getElementById('chapter-name').textContent       = chap.name;
+  document.getElementById('chapter-turns-text').textContent = `${CHAR.chapterTurns}/${chap.turns}`;
+  const pct = Math.min(100, Math.round((CHAR.chapterTurns / chap.turns) * 100));
+  document.getElementById('chapter-track-fill').style.width = pct + '%';
+}
+
+function advanceChapterTurn() {
+  const chap = STORY_CHAPTERS[CHAR.storyChapter - 1];
+  if (!chap) return;
+  CHAR.chapterTurns++;
+  updateChapterHUD();
+
+  if (CHAR.chapterTurns < chap.turns) return;
+
+  if (CHAR.storyChapter < 8) {
+    CHAR.storyChapter++;
+    CHAR.chapterTurns = 0;
+    const next = STORY_CHAPTERS[CHAR.storyChapter - 1];
+    updateChapterHUD();
+    setTimeout(() => {
+      const el = document.getElementById('story-text');
+      const notice = document.createElement('p');
+      notice.style.cssText = 'color:#c8b97a;border:1px solid #c8b97a33;padding:8px 12px;margin-top:14px;font-family:Noto Sans KR,sans-serif;font-size:11px;letter-spacing:0.12em;background:#110f07';
+      notice.textContent   = `◈ 챕터 ${CHAR.storyChapter}/8 시작 — ${next.name}`;
+      el.appendChild(notice);
+    }, 200);
+  } else {
+    setTimeout(showEnding, 700);
+  }
+}
+
+function showEnding() {
+  document.getElementById('ending-overlay')?.classList.add('show');
+}
+// ─────────────────────────────────────────────────────────────────────────
+
 // ── JSON 파싱 ────────────────────────────────────────────────────────────
 function safeParseGM(raw) {
   // 1) 마크다운 코드블록 제거 후 {} 범위 추출
@@ -973,6 +1145,7 @@ async function callGM(userMsg) {
     }
 
     applyResult(parsed, userMsg);
+    advanceChapterTurn();
 
   } catch(err) {
     document.getElementById('story-text').innerHTML =
@@ -1164,9 +1337,12 @@ function applyResume(save) {
   CHAR.maxMp  = gs.maxMp  ?? (typeof calcMaxMp === 'function' ? calcMaxMp(CHAR.job, CHAR.level, CHAR.stats) : 50);
   CHAR.mp     = gs.mp     ?? CHAR.maxMp;
   CHAR.status = gs.status ?? ['정상'];
-  CHAR.companions = gs.companions ?? [];
+  CHAR.companions   = gs.companions   ?? [];
+  CHAR.storyChapter = gs.storyChapter ?? 1;
+  CHAR.chapterTurns = gs.chapterTurns ?? 0;
   history     = save.history || [];
   updateHUD();
+  updateChapterHUD();
   document.getElementById('status-tags').innerHTML =
     CHAR.status.map(s=>`<span class="stag">${s}</span>`).join('');
   if (save.chapter) document.getElementById('chapter-label').textContent = save.chapter;
@@ -1232,6 +1408,7 @@ async function startGame() {
 
 // HUD 초기값 표시
 updateHUD();
+updateChapterHUD();
 
 // API 키 있으면 바로 시작
 if(API_KEY) startGame();

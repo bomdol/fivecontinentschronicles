@@ -3,7 +3,27 @@
     "allow": [
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\User\\\\IdeaProjects\\\\5continentschronicles\" -Recurse -File | Where-Object { $_.Extension -notin @\\('.md', '.csv', '.toml'\\) } | Select-Object -ExpandProperty FullName | Select-Object -First 50)",
       "Bash(python *)",
-      "Bash(del *)"
+      "Bash(del *)",
+      "Bash(Get-Content *)",
+      "Bash(dir /b src)",
+      "Bash(npm install *)",
+      "Bash(npx vite *)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(pkill -f \"vite --port 3000\")",
+      "Bash(npm --version)",
+      "PowerShell(Test-Path *)",
+      "PowerShell(Get-ChildItem *)",
+      "Bash(npm run *)",
+      "Bash(export ANDROID_HOME=\"$HOME/AppData/Local/Android/Sdk\")",
+      "Bash(npx cap *)",
+      "PowerShell(Get-Command *)",
+      "Bash(ANDROID_HOME=\"C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Android\\\\Sdk\" JAVA_HOME=\"C:\\\\Program Files\\\\Microsoft\\\\jdk-21.0.10.7-hotspot\" ./gradlew assembleDebug)",
+      "WebSearch",
+      "Bash(npx bmad-method *)",
+      "Bash(npm list *)",
+      "Bash(claude mcp *)",
+      "Bash(python3 *)",
+      "Bash(git add *)"
     ]
   }
 }
