@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LANGS, CONTS, JOBS, JOB_IMAGES, SN, SL, INIT_POOL, MAX_D, getUI, scaleBase, jobBase } from '../data/constants.js';
+import { onAuthChange } from '../services/firebase.js';
+import { loadSaveList, loadSave } from '../services/save.js';
 
 function L(obj, lang) {
   return typeof obj === 'object' ? (obj[lang] || obj.ko || obj.en || Object.values(obj)[0]) : obj;
@@ -21,7 +23,29 @@ export default function CharacterSelectScreen({ onStart }) {
   const [pool, setPool]     = useState(INIT_POOL);
   const [delta, setDelta]   = useState(() => { const d = {}; SN.forEach(s => d[s] = 0); return d; });
 
+  const [uid, setUid]                     = useState(null);
+  const [showLoadModal, setShowLoadModal] = useState(false);
+  const [saveList, setSaveList]           = useState([]);
+
+  useEffect(() => {
+    const unsub = onAuthChange(user => setUid(user?.uid || null));
+    return unsub;
+  }, []);
+
   const t = getUI(lang);
+
+  async function handleOpenLoad() {
+    const list = await loadSaveList(uid);
+    setSaveList(list);
+    setShowLoadModal(true);
+  }
+
+  async function handleSelectSave(meta) {
+    const save = await loadSave(uid, meta.gameId);
+    if (!save?.character) return;
+    setShowLoadModal(false);
+    onStart({ ...save.character, _resume: save, _gameId: save.gameId });
+  }
 
   function resetStat() {
     const d = {}; SN.forEach(s => d[s] = 0);
@@ -101,8 +125,41 @@ export default function CharacterSelectScreen({ onStart }) {
         <div className="intro-sub">{t.sub}</div>
         <div className="intro-divider" />
         <div className="intro-lore" dangerouslySetInnerHTML={{__html: t.lore.replace(/\n/g,'<br>')}} />
-        <button className="intro-btn" onClick={() => setScreen(2)}>{t.startBtn}</button>
+        <div style={{display:'flex', gap:'12px', justifyContent:'center'}}>
+          <button className="intro-btn" onClick={() => setScreen(2)}>{t.startBtn}</button>
+          <button className="intro-btn" onClick={handleOpenLoad}>불러오기</button>
+        </div>
       </div>
+
+      {showLoadModal && (
+        <div className="load-modal-overlay" onClick={() => setShowLoadModal(false)}>
+          <div className="load-modal" onClick={e => e.stopPropagation()}>
+            <div className="load-modal-title">저장된 게임 목록</div>
+            {saveList.length === 0
+              ? <div className="load-modal-empty">저장된 게임이 없습니다.</div>
+              : <div className="load-modal-list">
+                  {saveList.map(s => {
+                    const savedAt = s.savedAt?.seconds
+                      ? new Date(s.savedAt.seconds * 1000)
+                      : new Date(s.savedAt ?? 0);
+                    const dateStr = savedAt.toLocaleDateString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+                    return (
+                      <div key={s.gameId} className="load-slot" onClick={() => handleSelectSave(s)}>
+                        <div className="load-slot-id">#{s.gameId}</div>
+                        <div className="load-slot-info">
+                          <span className="load-slot-chapter">{s.chapter || '진행 중'}</span>
+                          <span className="load-slot-meta">Lv.{s.level ?? '?'} · {s.turns ?? 0}턴</span>
+                        </div>
+                        <div className="load-slot-date">{dateStr}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+            }
+            <button className="load-modal-close" onClick={() => setShowLoadModal(false)}>닫기</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 
