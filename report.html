@@ -172,7 +172,7 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
 <div class="report-meta">
   <span>📅 2026년 5월</span>
   <span>🎯 AI 텍스트 어드벤처 게임</span>
-  <span>📱 Android Capacitor 타깃 (예정)</span>
+  <span>📱 Android Capacitor APK 완료</span>
 </div>
 </div>
 
@@ -186,16 +186,16 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
     심심풀이 개인 프로젝트이자 인공지능 활용 학습 목적.
     독창적인 오리지널 세계관(판게아 분열 5대륙)을 기반으로 하며,
     D&amp;D 5e 방식 능력치 시스템과 20개국 다국어를 지원한다.
-    현재 Vanilla HTML/JS 단일 파일로 구현되어 있으며,
+    React + Vite 5 SPA로 구현되어 있으며,
     세이브 데이터는 Firebase Auth(Google 로그인) + Firestore 클라우드 저장,
     미로그인 게스트는 localStorage 폴백으로 처리한다.
-    React + Vite 마이그레이션 후 Capacitor.js로 Android APK 패키징 예정.
+    Capacitor.js Android APK 패키징이 완료된 상태이며, 클라이언트 전투 엔진(AC 방어 시스템, 직업별 아이템·평타)이 구현되어 있다.
   </p>
   <div class="arch-row">
     <div class="arch-box">
-      <div class="arch-icon">🌐</div>
-      <div class="arch-name">Vanilla HTML/JS</div>
-      <div class="arch-sub">단일 파일 구조<br>빌드 시스템 없음<br><span style="color:#3a3218;font-size:9px">(React 예정)</span></div>
+      <div class="arch-icon">⚛</div>
+      <div class="arch-name">React + Vite 5</div>
+      <div class="arch-sub">컴포넌트 기반 SPA<br>src/screens · lore · services<br><span style="color:var(--green);font-size:9px">✓ 마이그레이션 완료</span></div>
     </div>
     <div class="arch-arr">›</div>
     <div class="arch-box">
@@ -213,7 +213,7 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
     <div class="arch-box">
       <div class="arch-icon">📱</div>
       <div class="arch-name">Capacitor.js</div>
-      <div class="arch-sub">Android APK<br>WebView 래핑<br><span style="color:#3a3218;font-size:9px">(React 이후 예정)</span></div>
+      <div class="arch-sub">Android APK<br>WebView 래핑<br><span style="color:var(--green);font-size:9px">✓ APK 빌드 완료</span></div>
     </div>
   </div>
 </div>
@@ -273,17 +273,19 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
       </div>
     </div>
     <div class="tl-item">
-      <div class="tl-week">4주차<br><span style="color:#4a4040;font-size:10px">예정</span></div>
-      <div class="tl-line"><div class="tl-dot" style="background:var(--border)"></div></div>
+      <div class="tl-week">4주차<br><span style="color:var(--green);font-size:10px">완료</span></div>
+      <div class="tl-line"><div class="tl-dot" style="background:var(--green)"></div></div>
       <div class="tl-content">
-        <div class="tl-title">스토리 뼈대 · React 마이그레이션 · Android 패키징</div>
-        <div class="tl-desc">시기 분기(초반·중반·종반·결전), 미르 각성 이벤트, 세력 퀘스트 라인. 이후 Vanilla HTML → Vite + React 구조 전환 후 Capacitor.js로 Android APK 빌드.</div>
+        <div class="tl-title">React 마이그레이션 · Android APK · 전투 엔진 강화</div>
+        <div class="tl-desc">Vanilla HTML → React + Vite 5 SPA 전환 완료. Capacitor Android APK 빌드 성공. D&amp;D AC 방어 시스템, 클라이언트 전투 엔진(적 HP 유닛별 추적), 직업별 기본 아이템·평타, 기절 상태, 챕터 시스템 구현.</div>
         <div class="tl-tasks">
-          <span class="tl-task" style="background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a">시기 분기 시스템</span>
-          <span class="tl-task" style="background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a">미르 이벤트</span>
-          <span class="tl-task" style="background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a">세력 퀘스트</span>
-          <span class="tl-task" style="background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a">React + Vite 전환</span>
-          <span class="tl-task" style="background:#1a1a1a;border:1px solid #3a3a3a;color:#5a5a5a">Capacitor APK 빌드</span>
+          <span class="tl-task" style="background:#0a2a1a;border:1px solid #1a4a2a;color:var(--green)">React + Vite 5 마이그레이션</span>
+          <span class="tl-task" style="background:#0a2a1a;border:1px solid #1a4a2a;color:var(--green)">Capacitor APK 빌드</span>
+          <span class="tl-task" style="background:#0a2a1a;border:1px solid #1a4a2a;color:var(--green)">D&amp;D AC 방어 시스템</span>
+          <span class="tl-task" style="background:#0a2a1a;border:1px solid #1a4a2a;color:var(--green)">클라이언트 전투 엔진</span>
+          <span class="tl-task" style="background:#0a2a1a;border:1px solid #1a4a2a;color:var(--green)">직업별 기본 아이템 20종</span>
+          <span class="tl-task" style="background:#0a2a1a;border:1px solid #1a4a2a;color:var(--green)">직업별 평타 + 기절 처리</span>
+          <span class="tl-task" style="background:#0a2a1a;border:1px solid #1a4a2a;color:var(--green)">8챕터 스토리 시스템</span>
         </div>
       </div>
     </div>
@@ -390,19 +392,52 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
     <div class="status-card">
       <div class="sc-header"><span class="sc-title">직업 일러스트</span><span class="sc-badge badge-done">완료</span></div>
       <ul class="sc-items">
-        <li class="sc-item">18/20 직업 이미지 완성 (ma·nw 미완)</li>
+        <li class="sc-item">20/20 직업 이미지 완성</li>
         <li class="sc-item">직업 선택 화면에 이미지 프리뷰 카드 추가</li>
         <li class="sc-item">이미지 없는 직업은 ASCII 아트 플레이스홀더</li>
         <li class="sc-item">직업 일러스트 AI 프롬프트 파일 (job_illustrations.md)</li>
       </ul>
     </div>
     <div class="status-card">
-      <div class="sc-header"><span class="sc-title">Android 패키징</span><span class="sc-badge badge-todo">예정</span></div>
+      <div class="sc-header"><span class="sc-title">Android 패키징</span><span class="sc-badge badge-done">완료</span></div>
       <ul class="sc-items">
-        <li class="sc-item">React + Vite 마이그레이션 선행 필요</li>
-        <li class="sc-item">Capacitor.js WebView 래핑</li>
-        <li class="sc-item">초기 설정 화면 (API 키 입력)</li>
-        <li class="sc-item">APK 빌드 및 배포</li>
+        <li class="sc-item">React + Vite 5 마이그레이션 완료</li>
+        <li class="sc-item">Capacitor 8 WebView 래핑</li>
+        <li class="sc-item">API 키 미설정 시 자동 입력 패널 표시</li>
+        <li class="sc-item">APK: android/app/build/outputs/apk/debug/app-debug.apk</li>
+        <li class="sc-item">appId: com.fivecontents.chronicles</li>
+      </ul>
+    </div>
+    <div class="status-card">
+      <div class="sc-header"><span class="sc-title">D&amp;D AC 방어 시스템</span><span class="sc-badge badge-done">완료</span></div>
+      <ul class="sc-items">
+        <li class="sc-item">직업 20종 기본 AC + 민첩 보정 여부 (JOB_BASE_AC)</li>
+        <li class="sc-item">생물 12종 AC 값 추가</li>
+        <li class="sc-item">d20 + 능력치 수정치 vs 적 AC → 명중/빗나감/치명타</li>
+        <li class="sc-item">반격: d20 + 적 레벨/2 vs 플레이어 AC</li>
+        <li class="sc-item">아이템 AC 보너스 합산 (getItemsAC)</li>
+      </ul>
+    </div>
+    <div class="status-card">
+      <div class="sc-header"><span class="sc-title">클라이언트 전투 엔진</span><span class="sc-badge badge-done">완료</span></div>
+      <ul class="sc-items">
+        <li class="sc-item">적 _units[] 유닛별 HP 클라이언트 추적</li>
+        <li class="sc-item">명중 즉시 HP 차감, HP≤0 유닛 제거</li>
+        <li class="sc-item">사망 판정 엔진 수행 — AI 임의 결정 불가</li>
+        <li class="sc-item">pendingCombatOverridesRef로 AI hp_delta 덮어씀</li>
+        <li class="sc-item">턴 스트립: 유닛 수 변화 시 자동 재구성</li>
+        <li class="sc-item">적 패널: 유닛별 실시간 HP 표시</li>
+      </ul>
+    </div>
+    <div class="status-card">
+      <div class="sc-header"><span class="sc-title">직업별 아이템 · 평타</span><span class="sc-badge badge-done">완료</span></div>
+      <ul class="sc-items">
+        <li class="sc-item">직업 20종 기본 아이템 (JOB_DEFAULT_ITEM)</li>
+        <li class="sc-item">아이템 유형: 공격(flatDamage) · 회복(healAmount) · CC</li>
+        <li class="sc-item">전투 패널에 아이템 스킬 버튼 (◈ 접두어)</li>
+        <li class="sc-item">직업 20종 평타 (JOB_BASIC_ATTACK) — MP/HP 비용 없음</li>
+        <li class="sc-item">HP 0 → 기절: 스킬 불가, 턴 넘기기만 가능</li>
+        <li class="sc-item">동료 HP 변화 스토리 패널 인라인 표시</li>
       </ul>
     </div>
   </div>
@@ -553,6 +588,7 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
         <div class="creature-stats">
           <div class="creature-stat"><b>HP</b> 1,200</div>
           <div class="creature-stat"><b>ATK</b> 80</div>
+          <div class="creature-stat"><b>AC</b> 10</div>
         </div>
       </div>
     </div>
@@ -568,6 +604,7 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
         <div class="creature-stats">
           <div class="creature-stat"><b>HP</b> 2,000</div>
           <div class="creature-stat"><b>ATK</b> 120</div>
+          <div class="creature-stat"><b>AC</b> 11</div>
         </div>
       </div>
     </div>
@@ -583,6 +620,7 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
         <div class="creature-stats">
           <div class="creature-stat"><b>HP</b> 2,500</div>
           <div class="creature-stat"><b>ATK</b> 180</div>
+          <div class="creature-stat"><b>AC</b> 13</div>
         </div>
       </div>
     </div>
@@ -598,6 +636,7 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
         <div class="creature-stats">
           <div class="creature-stat"><b>HP</b> 4,500</div>
           <div class="creature-stat"><b>ATK</b> 150</div>
+          <div class="creature-stat"><b>AC</b> 17</div>
         </div>
       </div>
     </div>
@@ -613,6 +652,7 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
         <div class="creature-stats">
           <div class="creature-stat"><b>HP</b> 3,500</div>
           <div class="creature-stat"><b>ATK</b> 200</div>
+          <div class="creature-stat"><b>AC</b> 13</div>
         </div>
       </div>
     </div>
@@ -628,6 +668,7 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
         <div class="creature-stats">
           <div class="creature-stat"><b>HP</b> 4,500</div>
           <div class="creature-stat"><b>ATK</b> 240</div>
+          <div class="creature-stat"><b>AC</b> 12</div>
         </div>
       </div>
     </div>
@@ -643,6 +684,7 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
         <div class="creature-stats">
           <div class="creature-stat"><b>HP</b> 3,000</div>
           <div class="creature-stat"><b>ATK</b> 220</div>
+          <div class="creature-stat"><b>AC</b> 14</div>
         </div>
       </div>
     </div>
@@ -658,6 +700,7 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
         <div class="creature-stats">
           <div class="creature-stat"><b>HP</b> 4,000</div>
           <div class="creature-stat"><b>ATK</b> 260</div>
+          <div class="creature-stat"><b>AC</b> 16</div>
         </div>
       </div>
     </div>
@@ -673,6 +716,7 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
         <div class="creature-stats">
           <div class="creature-stat"><b>HP</b> 5,500</div>
           <div class="creature-stat"><b>ATK</b> 280</div>
+          <div class="creature-stat"><b>AC</b> 17</div>
         </div>
       </div>
     </div>
@@ -688,6 +732,7 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
         <div class="creature-stats">
           <div class="creature-stat"><b>HP</b> 5,000</div>
           <div class="creature-stat"><b>ATK</b> 320</div>
+          <div class="creature-stat"><b>AC</b> 15</div>
         </div>
       </div>
     </div>
@@ -703,6 +748,7 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
         <div class="creature-stats">
           <div class="creature-stat"><b>HP</b> 5,000</div>
           <div class="creature-stat"><b>ATK</b> 350</div>
+          <div class="creature-stat"><b>AC</b> 19</div>
         </div>
       </div>
     </div>
@@ -718,6 +764,7 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
         <div class="creature-stats">
           <div class="creature-stat"><b>HP</b> 7,000</div>
           <div class="creature-stat"><b>ATK</b> 350</div>
+          <div class="creature-stat"><b>AC</b> 18</div>
         </div>
       </div>
     </div>
@@ -931,9 +978,9 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
   <div class="section-title">08 · 기술 스택</div>
   <div class="stack-grid">
     <div class="stack-card">
-      <div class="stack-layer">프론트엔드 (현재)</div>
-      <div class="stack-name">Vanilla HTML / JS</div>
-      <div class="stack-why">빌드 시스템 없이 브라우저에서 직접 실행. 단일 파일 구조로 빠른 프로토타이핑. React 전환 예정.</div>
+      <div class="stack-layer">프론트엔드</div>
+      <div class="stack-name">React 18 + Vite 5</div>
+      <div class="stack-why">컴포넌트 기반 SPA. src/screens · lore · services · data 구조. npm run build → dist/ 정적 빌드. Capacitor로 APK 패키징.</div>
     </div>
     <div class="stack-card">
       <div class="stack-layer">AI 엔진 — 메인</div>
@@ -971,9 +1018,9 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
       <div class="stack-why">미로그인 게스트 폴백. 브라우저 재방문 시 이어하기 배너 표시.</div>
     </div>
     <div class="stack-card">
-      <div class="stack-layer">모바일 (예정)</div>
-      <div class="stack-name">Capacitor.js</div>
-      <div class="stack-why">React 웹앱 → Android APK. React 마이그레이션 완료 후 진행.</div>
+      <div class="stack-layer">모바일 (완료)</div>
+      <div class="stack-name">Capacitor 8</div>
+      <div class="stack-why">React 웹앱 → Android APK WebView 래핑 완료. appId: com.fivecontents.chronicles. assembleDebug 성공.</div>
     </div>
   </div>
 </div>
@@ -983,43 +1030,34 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
   <div class="section-title">09 · 현재 파일 구조</div>
   <div class="file-tree">
 <span class="dir">5continentschronicles/</span>
-├── <span class="file">00_language.html</span>          <span class="desc">← 언어 선택 화면 (20개국)</span>
-├── <span class="file">01_character_select.html</span>  <span class="desc">← 인트로 + 대륙/직업/능력치 선택 + 직업 이미지 프리뷰</span>
-├── <span class="file">02_gameplay.html</span>          <span class="desc">← 게임 플레이 메인 (Claude/Groq/Gemini/GPT)</span>
-├── <span class="file">lore_terra_nova.js</span>        <span class="desc">← 테라 노바 생물 12종 설정 (level_min/max 포함)</span>
-├── <span class="file">lore_characters.js</span>        <span class="desc">← 대륙별/직업별 인물 스토리 설정</span>
-├── <span class="file">lore_companions.js</span>        <span class="desc">← 네임드 동료 4명 설정 + buildCompanionPrompt()</span>
-├── <span class="file">lore_combat_rules.js</span>      <span class="desc">← 전투 규칙 (거리/범위/디버프 적용)</span>
-├── <span class="file">lore_dnd_rules.js</span>         <span class="desc">← D&amp;D 5e 기본 규칙</span>
-├── <span class="file">lore_jobs_levels.js</span>       <span class="desc">← 직업별 레벨/HP/MP/스킬 설정</span>
-├── <span class="file">job_illustrations.md</span>      <span class="desc">← 직업 일러스트 AI 생성 프롬프트 모음</span>
+├── <span class="file">package.json · vite.config.js · index.html</span>
 ├── <span class="file">report.html</span>               <span class="desc">← 이 보고서</span>
-└── <span class="dir">images/</span>                    <span class="desc">← 생물·직업 일러스트 PNG</span>
-    ├── <span class="desc" style="color:#3a3218">— 생물 12종 —</span>
-    ├── <span class="file">극광해파리.png</span>
-    ├── <span class="file">빙혈미르.png</span>
-    ├── <span class="file">화석거인.png</span>
-    ├── <span class="file">극광늑대.png</span>
-    ├── <span class="file">빙결곤충군.png</span>
-    ├── <span class="file">용암정령.png</span>
-    ├── <span class="file">빙하거북.png</span>
-    ├── <span class="file">철갑설곰.png</span>
-    ├── <span class="file">빙결영혼곰.png</span>
-    ├── <span class="file">혈설곰.png</span>
-    ├── <span class="file">빙해고래.png</span>
-    ├── <span class="file">빙결크라켄.png</span>
-    ├── <span class="desc" style="color:#3a3218">— 직업 일러스트 18/20 —</span>
-    ├── <span class="file">마법기사.png · 대마법사.png · 성약사.png · 금서사용자.png · 기갑병.png</span>
-    ├── <span class="file">발명가.png · 해커.png · 의무병.png · 검객.png · 술사.png</span>
-    └── <span class="file">자객.png · 의선.png · 달마내공자.png · 역장사.png · 염동력자.png</span>
-      <span class="file">잠영술사.png · 초능력의사.png · 각성자.png</span>
-
-<span style="color:#3a3218;margin-top:8px;display:block">── React 마이그레이션 후 예정 ──</span>
-├── <span class="file">src/</span>
-│   ├── <span class="file">App.jsx</span>                <span class="desc">← React 진입점</span>
-│   ├── <span class="file">screens/</span>               <span class="desc">← 화면 컴포넌트</span>
-│   └── <span class="file">api/</span>                   <span class="desc">← AI 제공자 추상화 레이어</span>
-└── <span class="file">android/</span>                   <span class="desc">← Capacitor Android 프로젝트</span>
+├── <span class="file">01_character_select.html · 02_gameplay.html</span>  <span class="desc">← 레거시 (참조용 보존)</span>
+├── <span class="dir">src/</span>
+│   ├── <span class="file">main.jsx · App.jsx</span>
+│   ├── <span class="dir">data/</span>
+│   │   └── <span class="file">constants.js</span>           <span class="desc">← LANGS · CONTINENTS · JOBS · SKILLS · STORY_CHAPTERS</span>
+│   ├── <span class="dir">lore/</span>
+│   │   ├── <span class="file">terra_nova.js</span>          <span class="desc">← 생물 12종 (HP/ATK/AC · level_min/max)</span>
+│   │   ├── <span class="file">characters.js</span>          <span class="desc">← 대륙별 인물 스토리 (buildCharLore)</span>
+│   │   ├── <span class="file">combat_rules.js</span>        <span class="desc">← 전투 규칙 (거리·범위·디버프)</span>
+│   │   ├── <span class="file">companions.js</span>          <span class="desc">← 동료 4명 (에리나·타이론·백화·아리엘)</span>
+│   │   ├── <span class="file">dnd_rules.js</span>           <span class="desc">← D&amp;D 5e 규칙</span>
+│   │   ├── <span class="file">jobs_levels.js</span>         <span class="desc">← 직업 20종 · JOB_BASE_AC · JOB_BASIC_ATTACK · getPlayerAC</span>
+│   │   └── <span class="file">items.js</span>               <span class="desc">← JOB_DEFAULT_ITEM 20종 · getItemsAC · buildItemPrompt</span>
+│   ├── <span class="dir">services/</span>
+│   │   ├── <span class="file">ai.js</span>                  <span class="desc">← callClaude/Gemini/OpenAI/Groq · callAI 라우터</span>
+│   │   ├── <span class="file">firebase.js</span>            <span class="desc">← Firebase Auth + Firestore</span>
+│   │   ├── <span class="file">save.js</span>                <span class="desc">← saveGame/loadSave (localStorage + Firestore)</span>
+│   │   └── <span class="file">prompts.js</span>             <span class="desc">← buildSystemPrompt · buildSystemPromptCompact · buildChapterPrompt</span>
+│   ├── <span class="dir">screens/</span>
+│   │   ├── <span class="file">CharacterSelectScreen.jsx</span>  <span class="desc">← 언어→인트로→대륙→직업→능력치 5단계</span>
+│   │   └── <span class="file">GameplayScreen.jsx</span>         <span class="desc">← 전체 게임 로직 · 클라이언트 전투 엔진</span>
+│   └── <span class="dir">styles/</span>
+│       └── <span class="file">global.css</span>
+├── <span class="dir">images/</span>                    <span class="desc">← 생물 12종 + 직업 20종 일러스트 PNG</span>
+└── <span class="dir">android/</span>                   <span class="desc">← Capacitor 8 Android 프로젝트</span>
+    └── <span class="desc">app/build/outputs/apk/debug/app-debug.apk</span>
   </div>
 </div>
 
@@ -1046,18 +1084,10 @@ footer{text-align:center;padding:24px;font-size:10px;color:var(--gold-d);border-
     <div class="next-item">
       <div class="next-num">3</div>
       <div>
-        <div class="next-title">React + Vite 마이그레이션</div>
-        <div class="next-desc">현재 Vanilla HTML 단일 파일 → Vite + React 구조로 전환. 컴포넌트 분리 (LanguageScreen, IntroScreen, CharacterSelect, Gameplay). AI 제공자 추상화 레이어 통합.</div>
+        <div class="next-title">릴리즈 서명 APK (선택)</div>
+        <div class="next-desc">Google Play 배포 시 키스토어 서명 APK 생성. @capacitor/assets로 앱 아이콘·스플래시 스크린 적용.</div>
       </div>
-      <span class="priority p-mid">중간</span>
-    </div>
-    <div class="next-item">
-      <div class="next-num">4</div>
-      <div>
-        <div class="next-title">Android Capacitor 패키징</div>
-        <div class="next-desc">React 전환 완료 후 npx cap add android → APK 빌드. 스플래시 화면. 초기 설정 화면 (AI API 키 입력, Google 계정 연결).</div>
-      </div>
-      <span class="priority p-low">이후</span>
+      <span class="priority p-low">선택</span>
     </div>
   </div>
 </div>
