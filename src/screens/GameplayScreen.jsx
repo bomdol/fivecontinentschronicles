@@ -52,11 +52,15 @@ function safeParseGM(raw, chapterLabel, charStatus, lang = 'en') {
     );
     return JSON.parse(fixed);
   } catch(_) {}
+  // JSON 잘림(토큰 한도) — 스트리밍에서 추출한 값 재활용
+  const story   = extractStreamStory(raw.replace(/▌$/, '')) ?? chapterLabel;
+  const chapter = raw.match(/"chapter"\s*:\s*"([^"\\]*)"/)?.[1] ?? chapterLabel;
   return {
-    chapter: chapterLabel,
-    story:   raw,
+    chapter, story,
     choices: FALLBACK_CHOICES[lang] ?? FALLBACK_CHOICES.en,
-    hp_delta: 0, status: charStatus, items_gained: [], items_lost: [],
+    hp_delta: 0, mp_delta: 0, xp_gained: 0, rest: '',
+    enemies: [], enemy_attack: '',
+    status: charStatus, items_gained: [], items_lost: [],
   };
 }
 

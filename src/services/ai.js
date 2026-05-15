@@ -44,7 +44,7 @@ export async function callGemini(apiKey, sys, msgs, onChunk) {
   const body = JSON.stringify({
     system_instruction: {parts:[{text:sys}]},
     contents,
-    generationConfig: {maxOutputTokens:800, temperature:0.9}
+    generationConfig: {maxOutputTokens:1500, temperature:0.9}
   });
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:streamGenerateContent?key=${apiKey}&alt=sse`,
