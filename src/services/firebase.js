@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, getDocs, collection, serverTimestamp } from 'firebase/firestore';
 import { FIREBASE_CONFIG } from '../data/constants.js';
 
 let app, auth, db;
@@ -28,13 +28,19 @@ export function signOutUser() {
   return signOut(auth);
 }
 
-export async function saveToFirestore(uid, data) {
+export async function saveToFirestore(uid, gameId, data) {
   if (!db) throw new Error('Firestore 미초기화');
-  await setDoc(doc(db, 'saves', uid), { ...data, savedAt: serverTimestamp() });
+  await setDoc(doc(db, 'saves', uid, 'slots', gameId), { ...data, savedAt: serverTimestamp() });
 }
 
-export async function loadFromFirestore(uid) {
+export async function loadFromFirestore(uid, gameId) {
   if (!db) return null;
-  const snap = await getDoc(doc(db, 'saves', uid));
+  const snap = await getDoc(doc(db, 'saves', uid, 'slots', gameId));
   return snap.exists() ? snap.data() : null;
+}
+
+export async function loadSaveListFromFirestore(uid) {
+  if (!db) return [];
+  const snaps = await getDocs(collection(db, 'saves', uid, 'slots'));
+  return snaps.docs.map(d => ({ gameId: d.id, ...d.data() }));
 }

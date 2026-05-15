@@ -110,6 +110,7 @@ ${buildCompanionPrompt(char.companions)}
 ${buildCreatureLore()}
 
 [응답 형식 — 반드시 순수 JSON만 반환, 마크다운 없이]
+⚠ JSON 키(chapter, story, choices, hp_delta 등)는 절대 번역하지 말 것. 키를 변경하면 게임이 작동하지 않음.
 {
   "chapter": "장 제목",
   "story": "스토리 (문단 구분은 \\n\\n)",
@@ -171,6 +172,7 @@ ${buildChapterPrompt(char)}
 ${creatureList}
 
 [응답 — 순수 JSON만, 마크다운 없이]
+⚠ JSON 키는 절대 번역 금지. chapter/story/choices/hp_delta 등 영어 키 그대로 사용.
 {"chapter":"","story":"","choices":["","","",""],"hp_delta":0,"mp_delta":0,"xp_gained":0,"enemies":[],"companion_recruit":"","companion_state":[],"status":[],"items_gained":[],"items_lost":[]}
 enemies: [{"id":"creature_id","count":1,"level_min":2,"level_max":4}] 전투 종료 시 반드시 []
 ${isKo ? '[필수] 한국어만. 한자·가나 포함 시 오답.' : `[Required] ${char.lang} only.`}`;

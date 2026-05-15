@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { CONTS, JOBS, JOB_IMAGES, CREATURE_IMAGES, AI_PROVIDERS, STORY_CHAPTERS } from '../data/constants.js';
 import { buildSystemPrompt, buildSystemPromptCompact } from '../services/prompts.js';
 import { callAI } from '../services/ai.js';
-import { saveGame, loadSave } from '../services/save.js';
+import { saveGame, loadSave, loadSaveList, generateGameId } from '../services/save.js';
 import { onAuthChange, signInWithGoogle, signOutUser } from '../services/firebase.js';
-import { calcMaxHp, calcMaxMp, calcLevel, XP_LEVELS } from '../lore/jobs_levels.js';
+import { calcMaxHp, calcMaxMp, calcLevel, XP_LEVELS, getAvailableSkills } from '../lore/jobs_levels.js';
 import { getCompanion } from '../lore/companions.js';
 import { TERRA_NOVA_CREATURES } from '../lore/terra_nova.js';
 
@@ -61,7 +61,7 @@ function safeParseGM(raw, chapterLabel, charStatus, lang = 'en') {
 }
 
 function hasForeignChars(text) {
-  return /[一-鿿぀-ヿ฀-๿؀-ۿ]/.test(text);
+  return /[一-鿿぀-ヿ฀-๿؀-ۿЀ-ӿ]/.test(text);
 }
 
 function buildInitiativeOrder(enemies, char, jobName) {
@@ -159,6 +159,11 @@ export default function GameplayScreen({ charData, onRestart }) {
   const [showEnding, setShowEnding]       = useState(false);
   const [saveStatus, setSaveStatus]       = useState({ text:'', cls:'' });
   const [authUser, setAuthUser]           = useState(null);
+  const [gameId, setGameId]               = useState(() => generateGameId());
+  const [inCombat, setInCombat]           = useState(false);
+  const [combatTurns, setCombatTurns]     = useState(0);
+  const [showLoadModal, setShowLoadModal] = useState(false);
+  const [saveList, setSaveList]           = useState([]);
 
   const historyRef        = useRef([]);
   const combatEnemiesRef  = useRef([]);
@@ -170,6 +175,9 @@ export default function GameplayScreen({ charData, onRestart }) {
   const freeInputRef      = useRef(null);
   const startedRef        = useRef(false);
   const loadingRef        = useRef(false);
+  const gameIdRef         = useRef(gameId);
+  const inCombatRef       = useRef(false);
+  const combatTurnsRef    = useRef(0);
 
   const apiKey = apiKeys[currentProvider];
 
@@ -190,7 +198,7 @@ export default function GameplayScreen({ charData, onRestart }) {
   async function doSaveGame(charSnapshot) {
     const c = charSnapshot || charRef.current;
     try {
-      await saveGame(authUser?.uid || null, c, historyRef.current, chapterLabel);
+      await saveGame(authUser?.uid || null, gameIdRef.current, c, historyRef.current, chapterLabel);
       if (authUser) showSaveStatus('저장됨 ✓', 'ok');
       else showSaveStatus('임시저장', 'ok');
     } catch(e) {
@@ -351,6 +359,21 @@ export default function GameplayScreen({ charData, onRestart }) {
 
     updateEnemyPanel(rolledEnemies);
     updateTurnStrip(rolledEnemies, c);
+
+    // 전투 상태 진입/종료
+    if (rolledEnemies.length > 0) {
+      if (!inCombatRef.current) {
+        inCombatRef.current = true;
+        setInCombat(true);
+        combatTurnsRef.current = 0;
+        setCombatTurns(0);
+      }
+    } else if (inCombatRef.current) {
+      inCombatRef.current = false;
+      setInCombat(false);
+      combatTurnsRef.current = 0;
+      setCombatTurns(0);
+    }
 
     const paras = (p.story||'').split('\n\n').map((t,i) => ({type:'para',text:t,key:i}));
     setStoryContent(paras);
@@ -518,6 +541,33 @@ export default function GameplayScreen({ charData, onRestart }) {
     if (!v || loadingRef.current) return;
     if (freeInputRef.current) freeInputRef.current.value = '';
     callGM(v);
+  }
+
+  // ── 전투 스킬 사용 ──────────────────────────────────────────────────
+  function handleCombatSkill(skill) {
+    if (loadingRef.current) return;
+    const turn = combatTurnsRef.current + 1;
+    combatTurnsRef.current = turn;
+    setCombatTurns(turn);
+    const costStr = skill.cost?.mp ? ` (MP ${skill.cost.mp} 소모)` : '';
+    callGM(`[전투 ${turn}/10턴] ${jobName}이(가) '${skill.name}'을(를) 사용합니다${costStr}! ${skill.effect}`);
+  }
+
+  // ── 저장 목록 불러오기 ──────────────────────────────────────────────
+  async function handleOpenLoadModal() {
+    const list = await loadSaveList(authUser?.uid);
+    setSaveList(list);
+    setShowLoadModal(true);
+  }
+
+  async function handleLoadSlot(meta) {
+    setShowLoadModal(false);
+    const save = await loadSave(authUser?.uid, meta.gameId);
+    if (!save) return;
+    // gameId를 불러온 슬롯으로 교체
+    setGameId(meta.gameId);
+    gameIdRef.current = meta.gameId;
+    applyResume(save);
   }
 
   // ── Render ───────────────────────────────────────────────────────────
@@ -704,6 +754,44 @@ export default function GameplayScreen({ charData, onRestart }) {
         ))}
       </div>
 
+      {/* 전투 스킬 패널 */}
+      {inCombat && (
+        <div className="combat-panel">
+          <div className="combat-turn-info">
+            ⚔ 전투 진행 중 — 플레이어 {combatTurns}/10턴
+            {combatTurns >= 10 && <span className="combat-warn"> (최대 턴 도달)</span>}
+          </div>
+          <div className="combat-skills">
+            {getAvailableSkills(char.job, char.level)
+              .filter(s => !s.passive)
+              .map(s => {
+                const mpCost = s.cost?.mp ?? 0;
+                const noMp = mpCost > 0 && char.mp < mpCost;
+                return (
+                  <button
+                    key={s.name}
+                    className={`skill-btn${noMp ? ' disabled' : ''}`}
+                    disabled={isLoading || noMp || combatTurns >= 10}
+                    onClick={() => handleCombatSkill(s)}
+                    title={s.effect}
+                  >
+                    <span className="skill-name">{s.name}</span>
+                    {mpCost > 0 && <span className="skill-cost">MP {mpCost}</span>}
+                  </button>
+                );
+              })
+            }
+            {combatTurns >= 10 && (
+              <button className="skill-btn flee" disabled={isLoading}
+                onClick={() => { inCombatRef.current = false; setInCombat(false); callGM('[전투 이탈] 위험을 무릅쓰고 전장에서 도망칩니다!'); }}>
+                🏃 도망
+              </button>
+            )}
+          </div>
+          <div className="combat-hint">스킬 버튼을 클릭하거나 아래 입력창에 직접 행동을 입력하세요</div>
+        </div>
+      )}
+
       {/* 하단 */}
       <div className="bottom-row">
         <div className="input-wrap">
@@ -717,6 +805,7 @@ export default function GameplayScreen({ charData, onRestart }) {
           <button className="send-btn" disabled={isLoading} onClick={handleFreeInput}>↵</button>
         </div>
         <button className="menu-btn" onClick={() => setShowLog(v=>!v)}>{showLog?'기록 ▴':'기록 ▾'}</button>
+        <button className="menu-btn" onClick={handleOpenLoadModal}>불러오기</button>
         <button className="menu-btn" onClick={() => { setShowApiSetup(v=>!v); setApiKeyInput(apiKeys[currentProvider]||''); }}>API 키</button>
         <button className="menu-btn" onClick={onRestart}>처음으로</button>
       </div>
@@ -729,6 +818,35 @@ export default function GameplayScreen({ charData, onRestart }) {
               <span className="log-choice">▶ {item.choice}</span><br/>{item.story}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 저장 목록 불러오기 모달 */}
+      {showLoadModal && (
+        <div className="load-modal-overlay" onClick={() => setShowLoadModal(false)}>
+          <div className="load-modal" onClick={e => e.stopPropagation()}>
+            <div className="load-modal-title">저장된 게임 목록</div>
+            {saveList.length === 0
+              ? <div className="load-modal-empty">저장된 게임이 없습니다.</div>
+              : saveList.map(s => {
+                  const savedAt = s.savedAt?.seconds
+                    ? new Date(s.savedAt.seconds * 1000)
+                    : new Date(s.savedAt ?? 0);
+                  const dateStr = savedAt.toLocaleDateString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+                  return (
+                    <div key={s.gameId} className="load-slot" onClick={() => handleLoadSlot(s)}>
+                      <div className="load-slot-id">#{s.gameId}</div>
+                      <div className="load-slot-info">
+                        <span className="load-slot-chapter">{s.chapter || '진행 중'}</span>
+                        <span className="load-slot-meta">Lv.{s.level ?? '?'} · {s.turns ?? 0}턴</span>
+                      </div>
+                      <div className="load-slot-date">{dateStr}</div>
+                    </div>
+                  );
+                })
+            }
+            <button className="load-modal-close" onClick={() => setShowLoadModal(false)}>닫기</button>
+          </div>
         </div>
       )}
 
