@@ -414,9 +414,10 @@ export default function GameplayScreen({ charData, onRestart }) {
 
     try {
       const c = charRef.current;
-      const isCompact = currentProvider === 'groq' || historyRef.current.length > 12;
+      const groqMode = currentProvider === 'groq';
+      const isCompact = groqMode || historyRef.current.length > 12;
       const msgs = isCompact
-        ? historyRef.current.slice(-12)
+        ? historyRef.current.slice(groqMode ? -6 : -12)
         : historyRef.current;
       const msgsForAI = c.lang === 'ko'
         ? msgs.map((m, i) => i === msgs.length-1 && m.role==='user'
