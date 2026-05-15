@@ -15,7 +15,7 @@ export async function callGemini(apiKey, sys, msgs) {
     parts: [{text: m.content}]
   }));
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`,
     {method:'POST', headers:{'Content-Type':'application/json'},
      body: JSON.stringify({system_instruction:{parts:[{text:sys}]}, contents, generationConfig:{maxOutputTokens:1200, temperature:0.9}})}
   );
