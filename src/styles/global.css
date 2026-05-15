@@ -265,6 +265,9 @@ html,body{background:#0a0a08;min-height:100vh}
 .level-notice{color:#c8b97a;border:1px solid #c8b97a44;padding:8px;margin-top:12px;font-family:'Noto Sans KR',sans-serif;font-size:12px;letter-spacing:0.1em}
 .companion-notice{color:#5dcaa5;border:1px solid #5dcaa544;padding:8px;margin-top:12px;font-family:'Noto Sans KR',sans-serif;font-size:12px;letter-spacing:0.1em}
 
+/* 적의 반격 */
+.enemy-atk-notice{color:#e07060;border-left:2px solid #e0606044;padding:6px 10px;margin-top:12px;background:#120808;font-family:'Noto Serif KR',serif;font-size:12px;line-height:1.9}
+
 /* 전투 패널 */
 .combat-panel{border:1px solid #5a2a2a;background:#0e0808;padding:12px 14px;margin-bottom:12px}
 .combat-turn-info{font-size:11px;color:#e06060;letter-spacing:0.12em;margin-bottom:4px;font-family:'Noto Sans KR',sans-serif}

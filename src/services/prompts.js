@@ -109,15 +109,26 @@ ${buildCompanionPrompt(char.companions)}
 등장 빈도는 스토리 맥락에 따라 자유롭게 조절하되, 대륙별 연계 이벤트를 적극 활용할 것.
 ${buildCreatureLore()}
 
+[전투 서술 규칙]
+전투 중(enemies 배열 비어있지 않을 때) story 서술 순서를 반드시 지킬 것:
+① 플레이어/아군의 행동과 그 결과 → ② 적의 반격(enemy_attack 필드에 별도 기술).
+enemy_attack: 적의 반격 한 문단. 적의 반격으로 인한 HP 피해는 hp_delta에 음수로 포함. 전투 없으면 빈 문자열 "".
+
+[휴식 회복 규칙]
+rest 필드: 야외(야영·텐트) 휴식="outdoor", 기지·거점·숙소 완전 휴식="base", 그 외="".
+게임 엔진이 rest 값에 따라 HP/MP를 자동 회복하므로 hp_delta/mp_delta로 중복 처리하지 말 것.
+
 [응답 형식 — 반드시 순수 JSON만 반환, 마크다운 없이]
 ⚠ JSON 키(chapter, story, choices, hp_delta 등)는 절대 번역하지 말 것. 키를 변경하면 게임이 작동하지 않음.
 {
   "chapter": "장 제목",
-  "story": "스토리 (문단 구분은 \\n\\n)",
+  "story": "① 플레이어 행동 결과 (문단 구분 \\n\\n)",
+  "enemy_attack": "② 적의 반격 서술 (전투 중에만, 비전투 시 빈 문자열)",
   "choices": ["선택지1","선택지2","선택지3","선택지4"],
   "hp_delta": 0,
   "mp_delta": 0,
   "xp_gained": 0,
+  "rest": "",
   "enemies": [],
   "companion_recruit": "",
   "companion_state": [],
@@ -171,9 +182,12 @@ ${buildChapterPrompt(char)}
 [테라 노바 생물 — enemies 배열로 복수 등장 가능]
 ${creatureList}
 
+[전투] enemies 있으면: story=①플레이어 행동, enemy_attack=②적 반격(hp_delta에 피해 포함). 비전투=enemy_attack:"".
+[휴식] 야외휴식=rest:"outdoor"(HP/MP 50%회복), 거점휴식=rest:"base"(100%회복), 그외=rest:"". hp_delta/mp_delta 중복금지.
+
 [응답 — 순수 JSON만, 마크다운 없이]
 ⚠ JSON 키는 절대 번역 금지. chapter/story/choices/hp_delta 등 영어 키 그대로 사용.
-{"chapter":"","story":"","choices":["","","",""],"hp_delta":0,"mp_delta":0,"xp_gained":0,"enemies":[],"companion_recruit":"","companion_state":[],"status":[],"items_gained":[],"items_lost":[]}
+{"chapter":"","story":"","enemy_attack":"","choices":["","","",""],"hp_delta":0,"mp_delta":0,"xp_gained":0,"rest":"","enemies":[],"companion_recruit":"","companion_state":[],"status":[],"items_gained":[],"items_lost":[]}
 enemies: [{"id":"creature_id","count":1,"level_min":2,"level_max":4}] 전투 종료 시 반드시 []
 ${isKo ? '[필수] 한국어만. 한자·가나 포함 시 오답.' : `[Required] ${char.lang} only.`}`;
 }

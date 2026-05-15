@@ -375,7 +375,19 @@ export default function GameplayScreen({ charData, onRestart }) {
       setCombatTurns(0);
     }
 
-    const paras = (p.story||'').split('\n\n').map((t,i) => ({type:'para',text:t,key:i}));
+    // 휴식 회복
+    if (p.rest === 'outdoor') {
+      c.hp = Math.min(c.maxHp, c.hp + Math.floor(c.maxHp * 0.5));
+      c.mp = Math.min(c.maxMp, c.mp + Math.floor(c.maxMp * 0.5));
+    } else if (p.rest === 'base') {
+      c.hp = c.maxHp;
+      c.mp = c.maxMp;
+    }
+
+    const paras = (p.story||'').split('\n\n').map((t,i) => ({type:'para',text:t,key:`s${i}`}));
+    if (p.enemy_attack && rolledEnemies.length > 0) {
+      paras.push({type:'enemy_atk', text:p.enemy_attack, key:'ea'});
+    }
     setStoryContent(paras);
     setChoices(p.choices || []);
 
@@ -553,6 +565,28 @@ export default function GameplayScreen({ charData, onRestart }) {
     callGM(`[전투 ${turn}/10턴] ${jobName}이(가) '${skill.name}'을(를) 사용합니다${costStr}! ${skill.effect}`);
   }
 
+  // ── 도주 시도 (d20 + 민첩 보정 vs DC 12) ──────────────────────────
+  function handleFlee() {
+    if (loadingRef.current) return;
+    const turn = combatTurnsRef.current + 1;
+    combatTurnsRef.current = turn;
+    setCombatTurns(turn);
+    const dex = getPlayerDex(charRef.current.stats);
+    const dexMod = Math.floor((dex - 10) / 2);
+    const d20 = Math.floor(Math.random() * 20) + 1;
+    const roll = d20 + dexMod;
+    const dc = 12;
+    if (roll >= dc) {
+      inCombatRef.current = false;
+      setInCombat(false);
+      combatTurnsRef.current = 0;
+      setCombatTurns(0);
+      callGM(`[도주 성공 — d20(${d20})${dexMod >= 0 ? '+' : ''}${dexMod}=${roll} ≥ DC${dc}] 전장에서 빠져나왔습니다. enemies:[] 전투 종료. 이후 상황을 서술해 주세요.`);
+    } else {
+      callGM(`[도주 실패 — d20(${d20})${dexMod >= 0 ? '+' : ''}${dexMod}=${roll} < DC${dc}] 도주를 시도했으나 실패! 적이 기회를 놓치지 않고 반격합니다.`);
+    }
+  }
+
   // ── 저장 목록 불러오기 ──────────────────────────────────────────────
   async function handleOpenLoadModal() {
     const list = await loadSaveList(authUser?.uid);
@@ -711,7 +745,8 @@ export default function GameplayScreen({ charData, onRestart }) {
                   <div className="ld" /><div className="ld" /><div className="ld" />
                 </div>
               );
-              if (item.type === 'para') return <p key={i}>{item.text}</p>;
+              if (item.type === 'para') return <p key={item.key ?? i}>{item.text}</p>;
+              if (item.type === 'enemy_atk') return <p key="ea" className="enemy-atk-notice">{item.text}</p>;
               if (item.type === 'notice') return <p key={i} className="chapter-notice">{item.text}</p>;
               if (item.type === 'level') return <p key={i} className="level-notice">{item.text}</p>;
               if (item.type === 'companion') return <p key={i} className="companion-notice">{item.text}</p>;
@@ -745,21 +780,23 @@ export default function GameplayScreen({ charData, onRestart }) {
         </div>
       </div>
 
-      {/* 선택지 */}
-      <div className="choices">
-        {choices.map((c, i) => (
-          <button key={i} className="choice-btn" disabled={isLoading} onClick={() => callGM(c)}>
-            <span className="choice-num">{i+1}.</span><span>{c}</span>
-          </button>
-        ))}
-      </div>
+      {/* 선택지 — 전투 중 숨김 */}
+      {!inCombat && (
+        <div className="choices">
+          {choices.map((c, i) => (
+            <button key={i} className="choice-btn" disabled={isLoading} onClick={() => callGM(c)}>
+              <span className="choice-num">{i+1}.</span><span>{c}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 전투 스킬 패널 */}
       {inCombat && (
         <div className="combat-panel">
           <div className="combat-turn-info">
             ⚔ 전투 진행 중 — 플레이어 {combatTurns}/10턴
-            {combatTurns >= 10 && <span className="combat-warn"> (최대 턴 도달)</span>}
+            {combatTurns >= 10 && <span className="combat-warn"> (최대 턴 도달 — 도주 가능)</span>}
           </div>
           <div className="combat-skills">
             {getAvailableSkills(char.job, char.level)
@@ -767,11 +804,12 @@ export default function GameplayScreen({ charData, onRestart }) {
               .map(s => {
                 const mpCost = s.cost?.mp ?? 0;
                 const noMp = mpCost > 0 && char.mp < mpCost;
+                const maxed = combatTurns >= 10;
                 return (
                   <button
                     key={s.name}
-                    className={`skill-btn${noMp ? ' disabled' : ''}`}
-                    disabled={isLoading || noMp || combatTurns >= 10}
+                    className={`skill-btn${noMp || maxed ? ' disabled' : ''}`}
+                    disabled={isLoading || noMp || maxed}
                     onClick={() => handleCombatSkill(s)}
                     title={s.effect}
                   >
@@ -781,14 +819,12 @@ export default function GameplayScreen({ charData, onRestart }) {
                 );
               })
             }
-            {combatTurns >= 10 && (
-              <button className="skill-btn flee" disabled={isLoading}
-                onClick={() => { inCombatRef.current = false; setInCombat(false); callGM('[전투 이탈] 위험을 무릅쓰고 전장에서 도망칩니다!'); }}>
-                🏃 도망
-              </button>
-            )}
+            <button className="skill-btn flee" disabled={isLoading}
+              onClick={handleFlee}>
+              🏃 도주
+            </button>
           </div>
-          <div className="combat-hint">스킬 버튼을 클릭하거나 아래 입력창에 직접 행동을 입력하세요</div>
+          <div className="combat-hint">스킬을 클릭하거나 아래 입력창에 직접 행동을 입력하세요</div>
         </div>
       )}
 
