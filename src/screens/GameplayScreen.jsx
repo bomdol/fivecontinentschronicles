@@ -402,7 +402,7 @@ export default function GameplayScreen({ charData, onRestart }) {
 
     try {
       const c = charRef.current;
-      const isCompact = historyRef.current.length > 12;
+      const isCompact = currentProvider === 'groq' || historyRef.current.length > 12;
       const msgs = isCompact
         ? historyRef.current.slice(-12)
         : historyRef.current;
