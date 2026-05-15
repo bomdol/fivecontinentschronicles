@@ -60,6 +60,19 @@ function safeParseGM(raw, chapterLabel, charStatus, lang = 'en') {
   };
 }
 
+// 스트리밍 중 누적 JSON에서 story 값을 점진적으로 추출
+function extractStreamStory(raw) {
+  const closed = raw.match(/"story"\s*:\s*"((?:[^"\\]|\\.)*)"/s);
+  if (closed) return closed[1]
+    .replace(/\\n/g, '\n').replace(/\\r/g, '').replace(/\\t/g, '\t')
+    .replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+  const open = raw.match(/"story"\s*:\s*"((?:[^"\\]|\\.)*)/s);
+  if (open) return open[1]
+    .replace(/\\n/g, '\n').replace(/\\r/g, '').replace(/\\t/g, '\t')
+    .replace(/\\"/g, '"').replace(/\\\\/g, '\\') + '▌';
+  return null;
+}
+
 function hasForeignChars(text) {
   return /[一-鿿぀-ヿ฀-๿؀-ۿЀ-ӿ]/.test(text);
 }
@@ -427,7 +440,13 @@ export default function GameplayScreen({ charData, onRestart }) {
       const sys = isCompact
         ? buildSystemPromptCompact(c, contName, jobName)
         : buildSystemPrompt(c, contName, jobName, jobRole, jobDesc);
-      const raw = await callAI(currentProvider, apiKey, sys, msgsForAI);
+      const raw = await callAI(currentProvider, apiKey, sys, msgsForAI, (partial) => {
+        const story = extractStreamStory(partial);
+        if (story) {
+          const paras = story.split('\n\n').map((t, i) => ({type:'para', text:t, key:`s${i}`}));
+          setStoryContent(paras);
+        }
+      });
       historyRef.current = [...historyRef.current, {role:'assistant', content: raw}];
 
       let parsed = safeParseGM(raw, chapterLabel, charRef.current.status, c.lang);
