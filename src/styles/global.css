@@ -44,6 +44,11 @@ html,body{background:#0a0a08;min-height:100vh}
 .intro-btn{padding:12px 36px;background:transparent;border:1px solid #c8b97a66;color:#c8b97a;font-family:'Noto Serif KR',serif;font-size:13px;letter-spacing:0.3em;cursor:pointer;transition:all 0.3s}
 .intro-btn:hover{background:#c8b97a18;border-color:#c8b97a;letter-spacing:0.4em}
 
+/* 인트로 auth */
+.intro-auth{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:18px;padding-top:14px;border-top:1px solid #1a1810}
+.intro-auth-name{font-size:10px;color:#5dcaa5;font-family:'Noto Sans KR',sans-serif}
+.intro-auth-hint{font-size:10px;color:#4a4428;font-family:'Noto Sans KR',sans-serif}
+
 /* 캐릭터 선택 */
 .char-screen{padding:20px 16px 28px}
 .step-header{text-align:center;margin-bottom:18px}

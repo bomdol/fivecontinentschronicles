@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LANGS, CONTS, JOBS, JOB_IMAGES, SN, SL, INIT_POOL, MAX_D, getUI, scaleBase, jobBase } from '../data/constants.js';
-import { onAuthChange } from '../services/firebase.js';
+import { onAuthChange, signInWithGoogle, signOutUser } from '../services/firebase.js';
 import { loadSaveList, loadSave } from '../services/save.js';
 
 function L(obj, lang) {
@@ -128,6 +128,19 @@ export default function CharacterSelectScreen({ onStart }) {
         <div style={{display:'flex', gap:'12px', justifyContent:'center'}}>
           <button className="intro-btn" onClick={() => setScreen(2)}>{t.startBtn}</button>
           <button className="intro-btn" onClick={handleOpenLoad}>불러오기</button>
+        </div>
+
+        <div className="intro-auth">
+          {uid
+            ? <>
+                <span className="intro-auth-name">✓ 로그인됨</span>
+                <button className="auth-btn" onClick={() => signOutUser()}>로그아웃</button>
+              </>
+            : <>
+                <span className="intro-auth-hint">로그인하면 다른 기기에서도 이어서 플레이할 수 있습니다</span>
+                <button className="auth-btn" onClick={() => signInWithGoogle()}>Google 로그인</button>
+              </>
+          }
         </div>
       </div>
 
