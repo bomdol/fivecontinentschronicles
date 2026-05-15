@@ -30,15 +30,26 @@
 | 영역 | 설명 |
 |------|------|
 | API 키 패널 | AI 공급자 선택 + API 키 입력 (미설정 시 자동 표시) |
-| HUD (상단) | 캐릭터명, 레벨, XP, 챕터 진행바 |
-| 채팅 영역 | AI 응답 + 플레이어 입력 히스토리 |
-| 전투 턴 스트립 | 전투 중 턴 순서 표시 |
-| 동료 패널 | 에리나·타이론·백화·아리엘 상태 |
-| 입력창 | 플레이어 행동 입력 (텍스트) |
-| 세이브/로드 버튼 | Firebase + localStorage 저장/불러오기 |
+| HUD (상단) | 캐릭터명, 레벨, XP, HP/MP 바, 챕터 진행바 |
+| 스토리 영역 | AI 응답(스트리밍) + 적 패널(실시간 HP 표시) |
+| 전투 턴 스트립 | 전투 중 턴 순서 + 유닛별 HP 바 (사망 유닛 자동 제거) |
+| 선택지 패널 | 비전투 중 AI 제시 선택지 4개 (전투 중 숨김) |
+| 전투 스킬 패널 | 평타⚔ + 직업 스킬 + 아이템 스킬◈ + 도주 / HP 0 시 기절 UI |
+| 적 패널 | 조우 중 적 이미지·스탯·실시간 HP 표시 |
+| 동료 상태 | 동료 HP 변화 시 스토리 패널에 인라인 표시 |
+| 입력창 | 플레이어 자유 행동 직접 입력 |
+
+**클라이언트 전투 엔진 (`handleCombatSkill`):**
+- d20 + 능력치 수정치 vs 적 AC → 명중/빗나감/치명타 판정
+- 명중 시 엔진이 즉시 적 `_units[]` HP 차감 → HP≤0 유닛 제거
+- 사망 판정을 엔진이 수행 (AI 임의 결정 불가)
+- 반격: 갱신된 생존 적 기준으로 d20 + 적 레벨/2 vs 플레이어 AC
+- HP 0 → 기절 상태: 기술 버튼 비활성, 턴 넘기기만 가능
+- `pendingCombatOverridesRef` 패턴: AI 응답의 hp/mp_delta를 엔진 계산값으로 덮어씀
 
 **React Hooks 사용 패턴:**
-- `useState` — 게임 상태 전체 (messages, character, combat, chapter 등)
+- `useState` — 게임 상태 전체 (char, combat, chapter, enemies 등)
+- `useRef` — combatEnemiesRef(적 HP 진실 원천), pendingCombatOverridesRef 등
 - `useEffect([apiKey])` — API 키 변경 감지 → 게임 시작 트리거
 - `useEffect([firebaseUser])` — 로그인 상태 변경 → 세이브 동기화
 
@@ -69,12 +80,13 @@
 ### lore/ 모듈
 | 파일 | 내용 |
 |------|------|
-| `terra_nova.js` | 판게아 분열, 5대륙 세계관, 역사 |
-| `characters.js` | 생물 12종 로어 (극광늑대, 빙해고래 등) |
-| `combat_rules.js` | 전투 규칙 (턴 기반, 스킬 효과) |
+| `terra_nova.js` | 판게아 분열, 5대륙 세계관, 역사 + 생물 12종 로어(AC 포함) |
+| `characters.js` | 대륙별 캐릭터 배경 스토리 (buildCharLore) |
+| `combat_rules.js` | 전투 규칙 (턴 기반, 스킬 효과, 엔진 판정 설명) |
 | `companions.js` | 동료 4명 배경 및 성격 (에리나·타이론·백화·아리엘) |
 | `dnd_rules.js` | D&D 5e 규칙 적용 (능력치 판정, 수정치) |
-| `jobs_levels.js` | 직업 20종 상세 + Lv1~12 성장 곡선 |
+| `jobs_levels.js` | 직업 20종 상세 + Lv1~12 성장 곡선 + `JOB_BASE_AC`(직업별 AC) + `JOB_BASIC_ATTACK`(직업별 평타) + `getPlayerAC`/`getStatMod` |
+| `items.js` | 직업별 기본 아이템 20종(`JOB_DEFAULT_ITEM`) + `getItemsAC` + `buildItemPrompt`/`buildItemPromptCompact` |
 
 ---
 

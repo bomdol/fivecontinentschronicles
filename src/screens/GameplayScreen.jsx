@@ -4,9 +4,10 @@ import { buildSystemPrompt, buildSystemPromptCompact } from '../services/prompts
 import { callAI } from '../services/ai.js';
 import { saveGame, generateGameId } from '../services/save.js';
 import { onAuthChange, signInWithGoogle, signOutUser } from '../services/firebase.js';
-import { calcMaxHp, calcMaxMp, calcLevel, XP_LEVELS, getAvailableSkills } from '../lore/jobs_levels.js';
+import { calcMaxHp, calcMaxMp, calcLevel, XP_LEVELS, getAvailableSkills, getPlayerAC, getStatMod, JOB_BASIC_ATTACK } from '../lore/jobs_levels.js';
 import { getCompanion } from '../lore/companions.js';
 import { TERRA_NOVA_CREATURES } from '../lore/terra_nova.js';
+import { JOB_DEFAULT_ITEM, getItemsAC } from '../lore/items.js';
 
 function L(obj, lang) {
   return typeof obj === 'object' ? (obj[lang] || obj.ko || obj.en || Object.values(obj)[0]) : obj;
@@ -15,6 +16,19 @@ function L(obj, lang) {
 function getPlayerDex(statsStr) {
   const m = statsStr.match(/민첩\s+(\d+)/);
   return m ? +m[1] : 10;
+}
+
+function rollD20() { return Math.floor(Math.random() * 20) + 1; }
+function rollDice(n, s) { let t = 0; for (let i = 0; i < n; i++) t += Math.floor(Math.random() * s) + 1; return t; }
+function rollSkillDamage(skill, statsStr) {
+  const { dice, sides, bonus_stat } = skill.damage;
+  return Math.max(1, rollDice(dice, sides) + getStatMod(statsStr, bonus_stat));
+}
+function getEnemyAC(enemy) {
+  const cr = TERRA_NOVA_CREATURES.find(c => c.id === enemy.id);
+  if (cr?.combat?.ac) return cr.combat.ac;
+  const lv = enemy._rolled_level ?? enemy.level_min ?? 1;
+  return 10 + Math.floor(lv / 2);
 }
 
 const FALLBACK_CHOICES = {
@@ -103,17 +117,19 @@ function buildInitiativeOrder(enemies, char, jobName) {
     const cr = TERRA_NOVA_CREATURES.find(c => c.id === e.id);
     const eInfo = CREATURE_IMAGES[e.id];
     const eDex = cr ? Math.min(20, 6 + (cr.threat ?? 2) * 2) : 10;
-    const cnt = Math.min(e.count ?? 1, 5);
-    for (let i = 0; i < cnt; i++) {
+    const baseHp = cr?.combat?.hp ?? 100;
+    const units = e._units?.filter(u => u.hp > 0)
+      ?? Array.from({length: Math.min(e.count ?? 1, 5)}, () => ({hp: baseHp, maxHp: baseHp}));
+    units.forEach(unit => {
       participants.push({
         type: 'enemy', id: e.id,
         name: eInfo ? eInfo.ko : e.id,
         img: eInfo ? eInfo.img : null,
         dex: eDex + Math.floor(Math.random() * 3),
-        hp: cr?.combat?.hp ?? 100, maxHp: cr?.combat?.hp ?? 100,
+        hp: unit.hp, maxHp: unit.maxHp,
         lv: e._rolled_level ?? cr?.level ?? '?',
       });
-    }
+    });
   });
   const typeOrder = { player: 0, companion: 1, enemy: 2 };
   participants.sort((a, b) => b.dex - a.dex || (typeOrder[a.type] ?? 2) - (typeOrder[b.type] ?? 2));
@@ -138,6 +154,7 @@ export default function GameplayScreen({ charData, onRestart }) {
     mp: initMaxMp, maxMp: initMaxMp,
     status: ['정상'],
     companions: [],
+    items: [JOB_DEFAULT_ITEM[charData.job]].filter(Boolean),
     storyChapter: 1,
     chapterTurns: 0,
   });
@@ -189,8 +206,9 @@ export default function GameplayScreen({ charData, onRestart }) {
   const startedRef        = useRef(false);
   const loadingRef        = useRef(false);
   const gameIdRef         = useRef(gameId);
-  const inCombatRef       = useRef(false);
-  const combatTurnsRef    = useRef(0);
+  const inCombatRef              = useRef(false);
+  const combatTurnsRef           = useRef(0);
+  const pendingCombatOverridesRef = useRef(null);
 
   const apiKey = apiKeys[currentProvider];
 
@@ -265,8 +283,10 @@ export default function GameplayScreen({ charData, onRestart }) {
       stripOrderRef.current = [];
       return;
     }
-    if (combatEnemiesRef.current.length === 0) {
-      combatTurnRef.current = 0;
+    const prevEnemyCount = stripOrderRef.current.filter(p => p.type === 'enemy').length;
+    const newEnemyCount  = enemies.reduce((s, e) => s + ((e._units?.filter(u=>u.hp>0).length) ?? e.count ?? 1), 0);
+    if (combatEnemiesRef.current.length === 0 || prevEnemyCount !== newEnemyCount) {
+      if (combatEnemiesRef.current.length === 0) combatTurnRef.current = 0;
       stripOrderRef.current = buildInitiativeOrder(enemies, currentChar, jobName);
     }
     combatEnemiesRef.current = enemies;
@@ -296,16 +316,33 @@ export default function GameplayScreen({ charData, onRestart }) {
       const cr = TERRA_NOVA_CREATURES.find(c => c.id === e.id);
       const lv = e._rolled_level ?? cr?.level ?? '?';
       const cnt = (e.count ?? 1) > 1 ? ` ×${e.count}` : '';
-      statsItems.push({ name:(eInfo?.ko||e.id)+cnt, lv, threat:cr?.threat??'?', combat:cr?.combat, i });
+      const unitHps = (e._units ?? []).filter(u=>u.hp>0).map(u=>({hp:u.hp,maxHp:u.maxHp}));
+      statsItems.push({ name:(eInfo?.ko||e.id)+cnt, lv, threat:cr?.threat??'?', combat:cr?.combat, unitHps, i });
     });
     setEnemyPanel({ img: pInfo.img, ko: pInfo.ko, en: pInfo.en, count: primary.count, statsItems });
   }
 
   // ── GM 응답 적용 ────────────────────────────────────────────────────
-  function applyResult(p, userMsg, prevChar) {
+  // combatOverrides: 엔진이 계산한 전투 수치. 공격 스킬={hp_delta,mp_delta}, 지원 스킬={mp_delta_only}
+  function applyResult(p, userMsg, prevChar, combatOverrides = null) {
     let c = { ...prevChar };
-    if (p.hp_delta) c.hp = Math.max(0, Math.min(c.maxHp, c.hp + p.hp_delta));
-    if (p.mp_delta) c.mp = Math.max(0, Math.min(c.maxMp, c.mp + p.mp_delta));
+    let hpDelta, mpDelta;
+    if (combatOverrides !== null) {
+      if ('hp_delta' in combatOverrides) {
+        // 공격 스킬: 엔진이 HP/MP 모두 계산
+        hpDelta = combatOverrides.hp_delta;
+        mpDelta = combatOverrides.mp_delta;
+      } else {
+        // 지원/버프 스킬: MP만 엔진, HP(회복 포함)는 AI 값
+        hpDelta = p.hp_delta ?? 0;
+        mpDelta = combatOverrides.mp_delta_only ?? p.mp_delta ?? 0;
+      }
+    } else {
+      hpDelta = p.hp_delta ?? 0;
+      mpDelta = p.mp_delta ?? 0;
+    }
+    if (hpDelta) c.hp = Math.max(0, Math.min(c.maxHp, c.hp + hpDelta));
+    if (mpDelta) c.mp = Math.max(0, Math.min(c.maxMp, c.mp + mpDelta));
 
     if (p.xp_gained && p.xp_gained > 0 && c.level < 12) {
       c.xp += p.xp_gained;
@@ -328,10 +365,28 @@ export default function GameplayScreen({ charData, onRestart }) {
 
     const rawEnemies = (p.enemies && p.enemies.length > 0) ? p.enemies
       : (p.creature_id ? [{id:p.creature_id, count:1, level_min:1, level_max:1}] : []);
-    const rolledEnemies = rawEnemies.map(e => {
-      const min = e.level_min ?? 1; const max = e.level_max ?? min;
-      return {...e, _rolled_level: min + Math.floor(Math.random()*(max-min+1))};
-    });
+
+    // 적 HP 관리: 신규 전투는 AI 적 목록으로 초기화, 진행 중은 엔진 상태 사용
+    let finalEnemies;
+    if (!inCombatRef.current && rawEnemies.length > 0) {
+      // 신규 전투: 각 유닛에 HP 초기화
+      finalEnemies = rawEnemies.map(e => {
+        const min = e.level_min ?? 1; const max = e.level_max ?? min;
+        const lv  = min + Math.floor(Math.random() * (max - min + 1));
+        const cr  = TERRA_NOVA_CREATURES.find(c => c.id === e.id);
+        const baseHp = cr?.combat?.hp ?? 100;
+        const cnt = Math.min(e.count ?? 1, 5);
+        const units = Array.from({length: cnt}, () => ({hp: baseHp, maxHp: baseHp}));
+        return {...e, _rolled_level: lv, count: cnt, _units: units};
+      });
+    } else if (inCombatRef.current) {
+      // 전투 진행 중: 엔진(handleCombatSkill)이 이미 갱신한 HP 기준
+      finalEnemies = combatEnemiesRef.current
+        .map(e => ({...e, _units: (e._units ?? []).filter(u => u.hp > 0), count: (e._units ?? []).filter(u => u.hp > 0).length}))
+        .filter(e => e.count > 0);
+    } else {
+      finalEnemies = [];
+    }
 
     if (p.companion_recruit) {
       const base = getCompanion(p.companion_recruit);
@@ -348,19 +403,23 @@ export default function GameplayScreen({ charData, onRestart }) {
       }
     }
 
+    const compChangeLines = [];
     if (p.companion_state?.length) {
       c.companions = c.companions.map(comp => {
         const cs = p.companion_state.find(x => x.id === comp.id);
         if (!cs || comp.status === 'dead') return comp;
         let nc = {...comp};
-        if (cs.hp_delta) nc.hp = Math.max(0, Math.min(nc.maxHp, nc.hp + cs.hp_delta));
+        if (cs.hp_delta) {
+          nc.hp = Math.max(0, Math.min(nc.maxHp, nc.hp + cs.hp_delta));
+          compChangeLines.push(`${comp.name} HP ${cs.hp_delta > 0 ? '+' : ''}${cs.hp_delta}`);
+        }
         if (cs.status) {
           if (nc.status === 'down' && cs.status === 'dead') nc.status = 'dead';
           else if (cs.status !== 'dead') nc.status = cs.status;
         }
         return nc;
       });
-      if (!rolledEnemies.length) {
+      if (!finalEnemies.length) {
         c.companions = c.companions.map(comp =>
           comp.status === 'down' ? {...comp, hp:1, status:'active'} : comp
         );
@@ -370,11 +429,11 @@ export default function GameplayScreen({ charData, onRestart }) {
     if (p.status?.length) c.status = p.status;
     if (p.chapter) setChapterLabel(p.chapter);
 
-    updateEnemyPanel(rolledEnemies);
-    updateTurnStrip(rolledEnemies, c);
+    updateEnemyPanel(finalEnemies);
+    updateTurnStrip(finalEnemies, c);
 
     // 전투 상태 진입/종료
-    if (rolledEnemies.length > 0) {
+    if (finalEnemies.length > 0) {
       if (!inCombatRef.current) {
         inCombatRef.current = true;
         setInCombat(true);
@@ -398,8 +457,11 @@ export default function GameplayScreen({ charData, onRestart }) {
     }
 
     const paras = (p.story||'').split('\n\n').map((t,i) => ({type:'para',text:t,key:`s${i}`}));
-    if (p.enemy_attack && rolledEnemies.length > 0) {
+    if (p.enemy_attack && finalEnemies.length > 0) {
       paras.push({type:'enemy_atk', text:p.enemy_attack, key:'ea'});
+    }
+    if (compChangeLines.length > 0) {
+      paras.push({type:'companion', text:`✦ 동료: ${compChangeLines.join(' / ')}`, key:'comp-chg'});
     }
     setStoryContent(paras);
     setChoices(p.choices || []);
@@ -462,7 +524,9 @@ export default function GameplayScreen({ charData, onRestart }) {
           if (fix.choices) parsed.choices = fix.choices;
         } catch(_) {}
       }
-      applyResult(parsed, userMsg, charRef.current);
+      const combatOverrides = pendingCombatOverridesRef.current;
+      pendingCombatOverridesRef.current = null;
+      applyResult(parsed, userMsg, charRef.current, combatOverrides);
     } catch(err) {
       setStoryContent([{type:'error', text:err.message}]);
       setChoices(['다시 시도']);
@@ -484,6 +548,7 @@ export default function GameplayScreen({ charData, onRestart }) {
       mp:     gs.mp     ?? initMaxMp,
       status: gs.status ?? ['정상'],
       companions:   gs.companions   ?? [],
+      items:        gs.items        ?? [JOB_DEFAULT_ITEM[charRef.current.job]].filter(Boolean),
       storyChapter: gs.storyChapter ?? 1,
       chapterTurns: gs.chapterTurns ?? 0,
     };
@@ -544,14 +609,145 @@ export default function GameplayScreen({ charData, onRestart }) {
     callGM(v);
   }
 
-  // ── 전투 스킬 사용 ──────────────────────────────────────────────────
+  // ── 전투 스킬 사용 (엔진 HP 관리 + D&D AC 판정) ──────────────────
   function handleCombatSkill(skill) {
     if (loadingRef.current) return;
     const turn = combatTurnsRef.current + 1;
     combatTurnsRef.current = turn;
     setCombatTurns(turn);
-    const costStr = skill.cost?.mp ? ` (MP ${skill.cost.mp} 소모)` : '';
-    callGM(`[전투 ${turn}/10턴] ${jobName}이(가) '${skill.name}'을(를) 사용합니다${costStr}! ${skill.effect}`);
+
+    const c = charRef.current;
+    const enemies = combatEnemiesRef.current;
+    const mpCost = skill.cost?.mp ?? 0;
+    const hpCost = skill.cost?.hp ?? 0;
+    const isAttackSkill = !!(skill.attackStat && (skill.damage || skill.flatDamage != null));
+    const isHealSkill = skill.healAmount != null;
+
+    // ── 1. 플레이어 공격 판정 & 엔진 HP 차감 ─────────────────────────
+    let playerHitMsg = '';
+    let playerDmg = 0;
+    let enemyStateMsg = '';
+
+    if (isAttackSkill && enemies.length > 0) {
+      let primary = enemies[0];
+      for (const e of enemies) {
+        const a = TERRA_NOVA_CREATURES.find(cr => cr.id === e.id);
+        const b = TERRA_NOVA_CREATURES.find(cr => cr.id === primary.id);
+        if (a && b && (a.threat ?? 0) > (b.threat ?? 0)) primary = e;
+      }
+      const enemyAC = getEnemyAC(primary);
+      const attackMod = getStatMod(c.stats, skill.attackStat);
+      const d20 = rollD20();
+      const roll = d20 + attackMod;
+      const isCrit = d20 === 20;
+      const modStr = attackMod >= 0 ? `+${attackMod}` : `${attackMod}`;
+
+      if (roll >= enemyAC || isCrit) {
+        playerDmg = skill.damage ? rollSkillDamage(skill, c.stats) : (skill.flatDamage ?? 0);
+        if (isCrit) playerDmg *= 2;
+        playerHitMsg = `공격: d20(${d20})${modStr}=${roll} vs AC${enemyAC} → 명중 (피해 ${playerDmg}${isCrit ? ', 치명타' : ''})`;
+
+        // 엔진이 적 HP 즉시 차감 & 사망 판정
+        const crData = TERRA_NOVA_CREATURES.find(cr => cr.id === primary.id);
+        const fallbackHp = crData?.combat?.hp ?? 100;
+        let killedCount = 0;
+        const updatedEnemies = enemies.map(e => {
+          if (e.id !== primary.id) return e;
+          const units = (e._units && e._units.length > 0
+            ? e._units.map(u => ({...u}))
+            : Array.from({length: Math.min(e.count ?? 1, 5)}, () => ({hp: fallbackHp, maxHp: fallbackHp}))
+          );
+          for (let i = 0; i < units.length; i++) {
+            if (units[i].hp > 0) { units[i].hp = Math.max(0, units[i].hp - playerDmg); break; }
+          }
+          killedCount += units.filter(u => u.hp <= 0).length;
+          const alive = units.filter(u => u.hp > 0);
+          return {...e, _units: alive, count: alive.length};
+        }).filter(e => e.count > 0);
+        combatEnemiesRef.current = updatedEnemies;
+
+        const remaining = updatedEnemies.reduce((s, e) => s + e.count, 0);
+        const detailParts = updatedEnemies.map(e => {
+          const n = CREATURE_IMAGES[e.id]?.ko ?? e.id;
+          const hpStr = (e._units ?? []).map((u, i) => `${i+1}:HP${u.hp}/${u.maxHp}`).join(', ');
+          return `${n}×${e.count}[${hpStr}]`;
+        }).join(' | ');
+        enemyStateMsg = killedCount > 0
+          ? `${killedCount}마리 사망. 잔존: ${remaining > 0 ? detailParts : '없음'}`
+          : `잔존: ${detailParts}`;
+      } else {
+        playerHitMsg = `공격: d20(${d20})${modStr}=${roll} vs AC${enemyAC} → 빗나감`;
+      }
+    } else if (isHealSkill) {
+      playerHitMsg = `${skill.name} 시전 (HP ${skill.healAmount} 회복)`;
+    } else if (!isAttackSkill) {
+      playerHitMsg = `${skill.name} 시전`;
+    } else {
+      playerHitMsg = `${skill.name} 사용 (적 없음)`;
+    }
+
+    // ── 2. 적 반격 판정 (생존 적 기준) ─────────────────────────────────
+    let enemyHpDelta = 0;
+    let enemyAttackMsg = '';
+    const survivingEnemies = combatEnemiesRef.current;
+    if (survivingEnemies.length > 0) {
+      let attacker = survivingEnemies[0];
+      for (const e of survivingEnemies) {
+        const a = TERRA_NOVA_CREATURES.find(cr => cr.id === e.id);
+        const b = TERRA_NOVA_CREATURES.find(cr => cr.id === attacker.id);
+        if (a && b && (a.threat ?? 0) > (b.threat ?? 0)) attacker = e;
+      }
+      const cr = TERRA_NOVA_CREATURES.find(cr => cr.id === attacker.id);
+      const playerAC = getPlayerAC(c.job, c.stats) + getItemsAC(c.items ?? []);
+      const enemyLv = attacker._rolled_level ?? cr?.level_min ?? 1;
+      const atkBonus = Math.floor(enemyLv / 2);
+      const d20 = rollD20();
+      const enemyRoll = d20 + atkBonus;
+      const atkBonusStr = atkBonus >= 0 ? `+${atkBonus}` : `${atkBonus}`;
+      if (enemyRoll >= playerAC && cr?.combat?.atk) {
+        const variance = Math.floor(Math.random() * 5) - 2;
+        enemyHpDelta = -Math.max(1, cr.combat.atk + variance);
+        enemyAttackMsg = `적 반격: d20(${d20})${atkBonusStr}=${enemyRoll} vs 플레이어 AC${playerAC} → 명중 (피해 ${Math.abs(enemyHpDelta)})`;
+      } else {
+        enemyAttackMsg = `적 반격: d20(${d20})${atkBonusStr}=${enemyRoll} vs 플레이어 AC${playerAC} → 빗나감`;
+      }
+    }
+
+    // ── 3. 오버라이드 저장 ───────────────────────────────────────────────
+    if (isAttackSkill) {
+      pendingCombatOverridesRef.current = { hp_delta: enemyHpDelta - hpCost, mp_delta: -mpCost };
+    } else if (isHealSkill) {
+      pendingCombatOverridesRef.current = { hp_delta: (skill.healAmount ?? 0) + enemyHpDelta - hpCost, mp_delta: -mpCost };
+    } else {
+      pendingCombatOverridesRef.current = { mp_delta_only: -mpCost };
+    }
+
+    // ── 4. AI 메시지 구성 ────────────────────────────────────────────────
+    const costStr = mpCost > 0 ? ` (MP ${mpCost})` : hpCost > 0 ? ` (HP ${hpCost})` : '';
+    let engineNote;
+    if (isAttackSkill || isHealSkill) {
+      const ov = pendingCombatOverridesRef.current;
+      engineNote = `[엔진 확정: hp_delta=${ov.hp_delta}, mp_delta=${ov.mp_delta} — 이 값 그대로 반환]`;
+    } else {
+      engineNote = `[mp_delta=${-mpCost} 반환. hp_delta는 스킬 효과 반영해 반환]`;
+    }
+    const aliveTotal = combatEnemiesRef.current.reduce((s, e) => s + e.count, 0);
+    const enemiesNote = aliveTotal > 0
+      ? `enemies 필드: 생존 적 목록 반환 (엔진 기준). 사망 개체 포함 금지.`
+      : `enemies 필드: enemies:[] 반환. 전투 종료 서술.`;
+    const statePart = enemyStateMsg ? ` [적 상태: ${enemyStateMsg}].` : '';
+    const msg = `[전투 ${turn}/10턴] '${skill.name}'${costStr} — [엔진 판정] ${playerHitMsg}.${statePart} ${enemyAttackMsg}. ${engineNote} ${enemiesNote}`;
+    callGM(msg);
+  }
+
+  // ── 기절 중 턴 넘기기 ──────────────────────────────────────────────
+  function handleSkipTurn() {
+    if (loadingRef.current) return;
+    const turn = combatTurnsRef.current + 1;
+    combatTurnsRef.current = turn;
+    setCombatTurns(turn);
+    pendingCombatOverridesRef.current = null;
+    callGM(`[전투 ${turn}/10턴] [기절] 플레이어 HP 0으로 기절, 행동 불가. 동료(있으면)와 적의 행동만 서술. 동료 치유 있으면 hp_delta 양수 포함, 적 공격 있으면 hp_delta 음수 포함. 동작 없으면 hp_delta=0, mp_delta=0.`);
   }
 
   // ── 도주 시도 (d20 + 민첩 보정 vs DC 12) ──────────────────────────
@@ -726,7 +922,14 @@ export default function GameplayScreen({ charData, onRestart }) {
                     <div key={i} style={i>0?{borderTop:'1px solid #1a1810',marginTop:'4px',paddingTop:'4px'}:{}}>
                       {i>0&&<>{s.name}<br/></>}
                       Lv.{s.lv} ★{s.threat}
-                      {s.combat&&<><br/>HP {s.combat.hp} · ATK {s.combat.atk}</>}
+                      {s.combat&&<><br/>
+                        {s.unitHps?.length > 0
+                          ? s.unitHps.length <= 3
+                            ? s.unitHps.map((u,i)=>`${i+1}:${u.hp}/${u.maxHp}`).join(' ')
+                            : `HP ${Math.min(...s.unitHps.map(u=>u.hp))}~${Math.max(...s.unitHps.map(u=>u.hp))}/${s.combat.hp} ×${s.unitHps.length}`
+                          : `HP ${s.combat.hp}`
+                        } · ATK {s.combat.atk} · AC {s.combat.ac??'?'}
+                      </> }
                     </div>
                   ))}
                 </div>
@@ -754,32 +957,82 @@ export default function GameplayScreen({ charData, onRestart }) {
             ⚔ 전투 진행 중 — 플레이어 {combatTurns}/10턴
             {combatTurns >= 10 && <span className="combat-warn"> (최대 턴 도달 — 도주 가능)</span>}
           </div>
-          <div className="combat-skills">
-            {getAvailableSkills(char.job, char.level)
-              .filter(s => !s.passive)
-              .map(s => {
+          {char.hp <= 0 ? (
+            <div className="combat-unconscious">
+              <div className="combat-unconscious-msg">⚠ 기절 상태 — 행동 불가</div>
+              <button className="skill-btn unconscious" disabled={isLoading} onClick={handleSkipTurn}>
+                턴 넘기기 (기절 중)
+              </button>
+            </div>
+          ) : (
+            <div className="combat-skills">
+              {/* 평타 */}
+              {JOB_BASIC_ATTACK[char.job] && (() => {
+                const ba = JOB_BASIC_ATTACK[char.job];
+                return (
+                  <button
+                    key="basic"
+                    className={`skill-btn basic${combatTurns >= 10 ? ' disabled' : ''}`}
+                    disabled={isLoading || combatTurns >= 10}
+                    onClick={() => handleCombatSkill(ba)}
+                    title={ba.effect}
+                  >
+                    <span className="skill-name">⚔ {ba.name}</span>
+                  </button>
+                );
+              })()}
+              {/* 직업 스킬 */}
+              {getAvailableSkills(char.job, char.level)
+                .filter(s => !s.passive)
+                .map(s => {
+                  const mpCost = s.cost?.mp ?? 0;
+                  const hpCost = s.cost?.hp ?? 0;
+                  const noMp = mpCost > 0 && char.mp < mpCost;
+                  const noHp = hpCost > 0 && char.hp <= hpCost;
+                  const maxed = combatTurns >= 10;
+                  return (
+                    <button
+                      key={s.name}
+                      className={`skill-btn${noMp || noHp || maxed ? ' disabled' : ''}`}
+                      disabled={isLoading || noMp || noHp || maxed}
+                      onClick={() => handleCombatSkill(s)}
+                      title={s.effect}
+                    >
+                      <span className="skill-name">{s.name}</span>
+                      {mpCost > 0 && <span className="skill-cost">MP {mpCost}</span>}
+                      {hpCost > 0 && <span className="skill-cost">HP {hpCost}</span>}
+                    </button>
+                  );
+                })
+              }
+              {/* 아이템 스킬 */}
+              {(char.items ?? []).flatMap(item =>
+                item.skill && !item.skill.passive ? [item.skill] : []
+              ).map(s => {
                 const mpCost = s.cost?.mp ?? 0;
+                const hpCost = s.cost?.hp ?? 0;
                 const noMp = mpCost > 0 && char.mp < mpCost;
+                const noHp = hpCost > 0 && char.hp <= hpCost;
                 const maxed = combatTurns >= 10;
                 return (
                   <button
-                    key={s.name}
-                    className={`skill-btn${noMp || maxed ? ' disabled' : ''}`}
-                    disabled={isLoading || noMp || maxed}
+                    key={`item-${s.name}`}
+                    className={`skill-btn item${noMp || noHp || maxed ? ' disabled' : ''}`}
+                    disabled={isLoading || noMp || noHp || maxed}
                     onClick={() => handleCombatSkill(s)}
                     title={s.effect}
                   >
-                    <span className="skill-name">{s.name}</span>
+                    <span className="skill-name">◈ {s.name}</span>
                     {mpCost > 0 && <span className="skill-cost">MP {mpCost}</span>}
+                    {hpCost > 0 && <span className="skill-cost">HP {hpCost}</span>}
                   </button>
                 );
-              })
-            }
-            <button className="skill-btn flee" disabled={isLoading}
-              onClick={handleFlee}>
-              🏃 도주
-            </button>
-          </div>
+              })}
+              <button className="skill-btn flee" disabled={isLoading} onClick={handleFlee}>
+                🏃 도주
+              </button>
+            </div>
+          )}
           <div className="combat-hint">스킬을 클릭하거나 아래 입력창에 직접 행동을 입력하세요</div>
         </div>
       )}

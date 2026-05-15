@@ -4,6 +4,7 @@ import { buildCombatRules } from '../lore/combat_rules.js';
 import { buildDndRules } from '../lore/dnd_rules.js';
 import { buildJobSkills, buildXpRules } from '../lore/jobs_levels.js';
 import { buildCompanionPrompt } from '../lore/companions.js';
+import { buildItemPrompt, buildItemPromptCompact } from '../lore/items.js';
 import { buildCreatureLore, TERRA_NOVA_CREATURES } from '../lore/terra_nova.js';
 
 export function buildChapterPrompt(char) {
@@ -104,6 +105,8 @@ ${buildCombatRules()}
 
 ${buildCompanionPrompt(char.companions)}
 
+${buildItemPrompt(char.items ?? [])}
+
 [테라 노바 생물 — 게임 마스터 참고용]
 테라 노바는 현재 네 대륙이 개척 전쟁 중인 미지의 땅으로, 아래 생물들이 서식한다.
 등장 빈도는 스토리 맥락에 따라 자유롭게 조절하되, 대륙별 연계 이벤트를 적극 활용할 것.
@@ -112,7 +115,10 @@ ${buildCreatureLore()}
 [전투 서술 규칙]
 전투 중(enemies 배열 비어있지 않을 때) story 서술 순서를 반드시 지킬 것:
 ① 플레이어/아군의 행동과 그 결과 → ② 적의 반격(enemy_attack 필드에 별도 기술).
-enemy_attack: 적의 반격 한 문단. 적의 반격으로 인한 HP 피해는 hp_delta에 음수로 포함. 전투 없으면 빈 문자열 "".
+enemy_attack: 적의 반격 한 문단. 전투 없으면 빈 문자열 "".
+⚠ 전투 스킬 사용 시 [엔진 판정] 메시지가 함께 전달됨: 공격 명중/빗나감, 피해량, 적 반격 결과가 이미 계산되어 있음.
+  - 엔진이 hp_delta/mp_delta 확정값을 명시한 경우 그 값을 그대로 반환하고 story/enemy_attack만 창의적으로 서술.
+  - 엔진이 명시하지 않은 경우(지원 스킬 등)에만 hp_delta를 자체 계산.
 
 [휴식 회복 규칙]
 rest 필드: 야외(야영·텐트) 휴식="outdoor", 기지·거점·숙소 완전 휴식="base", 그 외="".
@@ -153,7 +159,7 @@ export function buildSystemPromptCompact(char, contName, jobName) {
     : `[Language Rule] Respond in ${char.lang} only.`;
 
   const creatureList = TERRA_NOVA_CREATURES.map(c =>
-    `${c.id}(Lv${c.level_min}-${c.level_max},HP${c.combat.hp},ATK${c.combat.atk},${'★'.repeat(c.threat)})`
+    `${c.id}(Lv${c.level_min}-${c.level_max},HP${c.combat.hp},AC${c.combat.ac},ATK${c.combat.atk},${'★'.repeat(c.threat)})`
   ).join(' ');
 
   const activeComps = (char.companions || []).filter(c => c.status !== 'dead');
@@ -177,12 +183,14 @@ XP: Lv3=100, Lv5=450, Lv7=1100, Lv9=2300, Lv12=5000. 레벨 차 배율 ×0.1~×2
 
 ${compSection}
 
+${buildItemPromptCompact(char.items ?? [])}
+
 ${buildChapterPrompt(char)}
 
 [테라 노바 생물 — enemies 배열로 복수 등장 가능]
 ${creatureList}
 
-[전투] enemies 있으면: story=①플레이어 행동, enemy_attack=②적 반격(hp_delta에 피해 포함). 비전투=enemy_attack:"".
+[전투] enemies 있으면: story=①플레이어 행동, enemy_attack=②적 반격. [엔진 판정] 메시지가 오면 hp_delta/mp_delta 확정값 그대로 반환. 비전투=enemy_attack:"".
 [휴식] 야외휴식=rest:"outdoor"(HP/MP 50%회복), 거점휴식=rest:"base"(100%회복), 그외=rest:"". hp_delta/mp_delta 중복금지.
 
 [응답 — 순수 JSON만, 마크다운 없이]

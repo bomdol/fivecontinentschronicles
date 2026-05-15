@@ -14,7 +14,7 @@ export const TERRA_NOVA_CREATURES = [
     key_stats: ['STR', 'CON'],
     special: '빙화(氷火) 브레스 — 얼음과 용암을 동시에 뿜어 광역 동결·화상',
     combat: {
-      hp: 5000, atk: 350, mp: 800,
+      hp: 5000, atk: 350, mp: 800, ac: 19,
       skills: [
         { name: '빙염 브레스',   type: '공격',   cost: { mp: 80  }, effect: '광역 200 피해 + 5초 빙결 디버프' },
         { name: '용암 방패',     type: '방어',   cost: { mp: 60  }, effect: '10초간 받는 피해 50% 감소' },
@@ -34,7 +34,7 @@ export const TERRA_NOVA_CREATURES = [
     key_stats: ['STR'],
     special: '암석 투척 / 암석 충격파 — 몸을 떼어 던지거나 지면을 내리쳐 반경 5m 균열, 넘어짐 판정(DEX)',
     combat: {
-      hp: 5500, atk: 280, mp: 300,
+      hp: 5500, atk: 280, mp: 300, ac: 17,
       skills: [
         { name: '암석 투척',     type: '공격',   cost: { hp: 40  }, effect: '자신의 몸 일부를 떼어 던짐, 단일 대상 250 피해' },
         { name: '철벽 방어',     type: '방어',   cost: { mp: 40  }, effect: '15초간 방어력 +30%' },
@@ -54,7 +54,7 @@ export const TERRA_NOVA_CREATURES = [
     key_stats: ['WIS', 'DEX'],
     special: '오로라 도약 — 빛으로 순간이동처럼 위치를 바꾸는 회피 기동',
     combat: {
-      hp: 2500, atk: 180, mp: 400,
+      hp: 2500, atk: 180, mp: 400, ac: 13,
       skills: [
         { name: '빛의 돌진',     type: '공격',   cost: { mp: 30  }, effect: '단일 대상 150 피해 + 2초 기절' },
         { name: '오로라 보호막', type: '버프',   cost: { mp: 50  }, effect: '아군 전체 방어력 +20%, 8초 지속' },
@@ -74,7 +74,7 @@ export const TERRA_NOVA_CREATURES = [
     key_stats: ['INT', 'DEX'],
     special: '빙결 코팅 — 장비·무기 표면을 얼려 판정에 -2 패널티',
     combat: {
-      hp: 1200, atk: 80, mp: 200,
+      hp: 1200, atk: 80, mp: 200, ac: 10,
       note: '무리로 등장. 단일 공격 효과 절반, 광역 공격에 취약',
       skills: [
         { name: '냉기 갉아먹기', type: '공격',   cost: { mp: 30  }, effect: '단일 대상 100 피해' },
@@ -94,7 +94,7 @@ export const TERRA_NOVA_CREATURES = [
     key_stats: ['INT', 'WIS'],
     special: '용암 분출 — 전방 직선 화상 피해, CON 판정으로 부상 감소',
     combat: {
-      hp: 3000, atk: 220, mp: 500,
+      hp: 3000, atk: 220, mp: 500, ac: 14,
       skills: [
         { name: '화염탄',       type: '공격', cost: { mp: 40  }, effect: '단일 대상 180 피해' },
         { name: '용암 갑옷',   type: '방어', cost: { mp: 60  }, effect: '12초간 근접 공격 반사 (30% 피해)' },
@@ -114,7 +114,7 @@ export const TERRA_NOVA_CREATURES = [
     key_stats: ['CON'],
     special: '빙하 방패 — 공격 시 반사 냉기 피해, STR 판정으로 균열 가능',
     combat: {
-      hp: 4500, atk: 150, mp: 600,
+      hp: 4500, atk: 150, mp: 600, ac: 17,
       skills: [
         { name: '빙하 충돌',     type: '공격', cost: { hp: 40  }, effect: '단일 대상 200 피해' },
         { name: '빙벽 생성',     type: '방어', cost: { mp: 70  }, effect: '10초간 아군 전체 받는 피해 -25%' },
@@ -134,7 +134,7 @@ export const TERRA_NOVA_CREATURES = [
     key_stats: ['STR', 'CON'],
     special: '금속 격돌 — 갑각 충격파, 근접 공격자에게 반격 피해',
     combat: {
-      hp: 4000, atk: 260, mp: 200,
+      hp: 4000, atk: 260, mp: 200, ac: 16,
       skills: [
         { name: '강철 발톱', type: '공격',     cost: { hp: 30  }, effect: '단일 대상 220 피해' },
         { name: '철갑 피부', type: '방어',     cost: { mp: 40  }, effect: '12초간 방어력 +40%' },
@@ -154,7 +154,7 @@ export const TERRA_NOVA_CREATURES = [
     key_stats: ['WIS', 'CHA'],
     special: '영혼 포효 — 정신 충격파, WIS 판정 실패 시 1턴 행동 불능',
     combat: {
-      hp: 3500, atk: 200, mp: 500,
+      hp: 3500, atk: 200, mp: 500, ac: 13,
       note: '물리 공격 피해 50% 감소. Psychia 캐릭터 앞에서 공격성 저하',
       skills: [
         { name: '빙결 발톱',     type: '공격', cost: { mp: 40  }, effect: '단일 대상 180 피해 + 3초 빙결' },
@@ -175,7 +175,7 @@ export const TERRA_NOVA_CREATURES = [
     key_stats: ['STR', 'WIS'],
     special: '혈기(血氣) 폭발 — 체력이 절반 이하일 때 미르의 마력이 폭주, 전 능력치 상승',
     combat: {
-      hp: 5000, atk: 320, mp: 400,
+      hp: 5000, atk: 320, mp: 400, ac: 15,
       note: 'HP 50% 이하 진입 시 광폭화 자동 발동 — ATK +50%',
       skills: [
         { name: '피의 발톱', type: '공격', cost: { hp: 50   }, effect: '단일 대상 300 피해' },
@@ -196,7 +196,7 @@ export const TERRA_NOVA_CREATURES = [
     key_stats: ['STR', 'DEX'],
     special: '빙파(氷波) — 수면 충격파로 선박 탑승자 전원 DEX 판정',
     combat: {
-      hp: 4500, atk: 240, mp: 700,
+      hp: 4500, atk: 240, mp: 700, ac: 12,
       skills: [
         { name: '빙결 파도',   type: '공격',     cost: { mp: 60  }, effect: '6m 내 적 200 피해' },
         { name: '고래의 울음', type: '군중제어', cost: { mp: 100 }, effect: '적 전체 혼란(스킬 실패 확률 30%), 8초 지속' },
@@ -216,7 +216,7 @@ export const TERRA_NOVA_CREATURES = [
     key_stats: ['WIS'],
     special: '환각 광채 — WIS 판정 실패 시 아군을 적으로 오인하는 혼란 상태',
     combat: {
-      hp: 2000, atk: 120, mp: 600,
+      hp: 2000, atk: 120, mp: 600, ac: 11,
       skills: [
         { name: '전기 촉수', type: '공격',   cost: { mp: 30  }, effect: '단일 대상 150 피해 + 2초 기절' },
         { name: '오로라 빛', type: '버프',   cost: { mp: 50  }, effect: '아군 전체 공격속도 +20%, 8초 지속' },
@@ -236,7 +236,7 @@ export const TERRA_NOVA_CREATURES = [
     key_stats: ['STR', 'CON'],
     special: '빙결 포박 — 촉수로 다수 대상을 동시 구속, CON 판정으로 탈출',
     combat: {
-      hp: 7000, atk: 350, mp: 900,
+      hp: 7000, atk: 350, mp: 900, ac: 18,
       skills: [
         { name: '얼음 촉수',   type: '공격',     cost: { mp: 80  }, effect: '단일 대상 300 피해 + 3초 속박' },
         { name: '빙결 해류',   type: '군중제어', cost: { mp: 120 }, effect: '8m 내 적 이동속도 -70%, 10초 지속' },
@@ -260,7 +260,7 @@ export function buildCreatureLore() {
     }).join(' / ');
     const note = cb.note ? ` [${cb.note}]` : '';
     return (
-      `• ${c.icon} ${c.name.ko}(${c.name.en}) [${stars}] Lv.${c.level} HP:${cb.hp} ATK:${cb.atk} MP:${cb.mp}${note}\n` +
+      `• ${c.icon} ${c.name.ko}(${c.name.en}) [${stars}] Lv.${c.level} HP:${cb.hp} AC:${cb.ac} ATK:${cb.atk} MP:${cb.mp}${note}\n` +
       `  서식지: ${c.habitat} | ${c.desc}\n` +
       `  스킬: ${skillTx}`
     );
