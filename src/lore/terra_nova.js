@@ -21,6 +21,11 @@ export const TERRA_NOVA_CREATURES = [
         { name: '얼음의 포효',   type: '군중제어', cost: { mp: 100 }, effect: '3초간 적 전체 기절' },
       ],
     },
+    drops: [
+      { id: 'mirr_scale',    prob: 0.30, qty_min: 1, qty_max: 1 },
+      { id: 'glacier_gem',   prob: 0.40, qty_min: 1, qty_max: 2 },
+      { id: 'ice_flower',    prob: 0.25, qty_min: 1, qty_max: 1 },
+    ],
   },
   {
     id: 'fossil_titan',
@@ -41,6 +46,11 @@ export const TERRA_NOVA_CREATURES = [
         { name: '대지의 분노',   type: '군중제어', cost: { mp: 80  }, effect: '5m 내 적 5초간 이동속도 -50%' },
       ],
     },
+    drops: [
+      { id: 'fossil_fragment', prob: 0.55, qty_min: 1, qty_max: 2 },
+      { id: 'fossil_mineral',  prob: 0.30, qty_min: 1, qty_max: 2 },
+      { id: 'ancient_ore',     prob: 0.15, qty_min: 1, qty_max: 1 },
+    ],
   },
   {
     id: 'aurora_wolf',
@@ -61,6 +71,10 @@ export const TERRA_NOVA_CREATURES = [
         { name: '은신 이동',     type: '회피',   cost: { mp: 40  }, effect: '5초간 투명화' },
       ],
     },
+    drops: [
+      { id: 'aurora_pelt',  prob: 0.60, qty_min: 1, qty_max: 2 },
+      { id: 'aurora_petal', prob: 0.15, qty_min: 1, qty_max: 1 },
+    ],
   },
   {
     id: 'frost_swarm',
@@ -81,6 +95,10 @@ export const TERRA_NOVA_CREATURES = [
         { name: '떼 공격',       type: '군중제어', cost: { mp: 50  }, effect: '3m 내 적 공격속도 -30%, 10초 지속' },
       ],
     },
+    drops: [
+      { id: 'frost_crystal', prob: 0.70, qty_min: 1, qty_max: 2 },
+      { id: 'frost_moss',    prob: 0.30, qty_min: 1, qty_max: 1 },
+    ],
   },
   {
     id: 'pyroclast_elemental',
@@ -101,6 +119,11 @@ export const TERRA_NOVA_CREATURES = [
         { name: '불길 확산',   type: '디버프', cost: { mp: 80  }, effect: '4m 내 적 공격력 -20%, 8초 지속' },
       ],
     },
+    drops: [
+      { id: 'lava_core',      prob: 0.50, qty_min: 1, qty_max: 1 },
+      { id: 'volcanic_rock',  prob: 0.60, qty_min: 2, qty_max: 3 },
+      { id: 'volcano_flower', prob: 0.20, qty_min: 1, qty_max: 1 },
+    ],
   },
   {
     id: 'cryo_turtle',
@@ -121,6 +144,10 @@ export const TERRA_NOVA_CREATURES = [
         { name: '빙하의 축복',   type: '버프', cost: { mp: 100 }, effect: '아군 전체 HP 300 회복' },
       ],
     },
+    drops: [
+      { id: 'glacier_shell', prob: 0.50, qty_min: 1, qty_max: 1 },
+      { id: 'frost_moss',    prob: 0.40, qty_min: 1, qty_max: 2 },
+    ],
   },
   {
     id: 'ironhide_bear',
@@ -141,6 +168,10 @@ export const TERRA_NOVA_CREATURES = [
         { name: '포효',       type: '군중제어', cost: { mp: 60  }, effect: '5m 내 적 공격속도 -20%, 6초 지속' },
       ],
     },
+    drops: [
+      { id: 'iron_hide',  prob: 0.55, qty_min: 1, qty_max: 2 },
+      { id: 'deep_iron',  prob: 0.25, qty_min: 1, qty_max: 1 },
+    ],
   },
   {
     id: 'frost_spirit_bear',
@@ -162,6 +193,10 @@ export const TERRA_NOVA_CREATURES = [
         { name: '빙결 순간이동', type: '회피', cost: { mp: 50  }, effect: '1회 공격 회피' },
       ],
     },
+    drops: [
+      { id: 'spirit_crystal', prob: 0.45, qty_min: 1, qty_max: 1 },
+      { id: 'aurora_pelt',    prob: 0.30, qty_min: 1, qty_max: 1 },
+    ],
   },
   {
     id: 'bloodsnow_bear',
@@ -183,6 +218,11 @@ export const TERRA_NOVA_CREATURES = [
         { name: '피의 저주', type: '디버프', cost: { mp: 80  }, effect: '4m 내 적 HP 회복량 -50%, 12초 지속' },
       ],
     },
+    drops: [
+      { id: 'mirr_bloodstone', prob: 0.35, qty_min: 1, qty_max: 1 },
+      { id: 'spirit_crystal',  prob: 0.40, qty_min: 1, qty_max: 1 },
+      { id: 'aurora_pelt',     prob: 0.30, qty_min: 1, qty_max: 1 },
+    ],
   },
   {
     id: 'frostwhale',
@@ -203,6 +243,10 @@ export const TERRA_NOVA_CREATURES = [
         { name: '빙해 보호막', type: '방어',     cost: { mp: 80  }, effect: '아군 전체 방어력 +20%, 10초 지속' },
       ],
     },
+    drops: [
+      { id: 'frostwhale_fat', prob: 0.70, qty_min: 2, qty_max: 4 },
+      { id: 'glacier_gem',    prob: 0.15, qty_min: 1, qty_max: 1 },
+    ],
   },
   {
     id: 'aurora_jellyfish',
@@ -223,6 +267,10 @@ export const TERRA_NOVA_CREATURES = [
         { name: '정신 혼란', type: '디버프', cost: { mp: 70  }, effect: '4m 내 적 혼란(명령 반전), 6초 지속' },
       ],
     },
+    drops: [
+      { id: 'aurora_tentacle', prob: 0.60, qty_min: 1, qty_max: 2 },
+      { id: 'aurora_petal',    prob: 0.20, qty_min: 1, qty_max: 1 },
+    ],
   },
   {
     id: 'ice_kraken',
@@ -243,6 +291,251 @@ export const TERRA_NOVA_CREATURES = [
         { name: '심해의 분노', type: '버프',     cost: { hp: 150 }, effect: '공격력 +40%, 12초 지속' },
       ],
     },
+    drops: [
+      { id: 'kraken_fang',    prob: 0.30, qty_min: 1, qty_max: 1 },
+      { id: 'aurora_crystal', prob: 0.35, qty_min: 1, qty_max: 1 },
+      { id: 'spirit_stone',   prob: 0.20, qty_min: 1, qty_max: 1 },
+    ],
+  },
+
+  // ─── 신규 괴물 10종 ──────────────────────────────────────────────────────
+  {
+    id: 'tundra_rat',
+    name: { ko: '툰드라 쥐', en: 'Tundra Rat' },
+    icon: '🐀',
+    threat: 1,
+    level: 1, level_min: 1, level_max: 2,
+    habitat: '테라 노바 평원·설원',
+    desc: '테라 노바 평원 어디서나 볼 수 있는 작은 설치류. 단독으로는 위협이 없지만 떼로 몰려들면 물자를 훔치거나 갉아먹는다.',
+    usage: '초반 채집 방해 이벤트 — 식량·약초 강탈 시도. 모든 대륙 캐릭터 공통',
+    key_stats: ['DEX'],
+    special: '군집 잠식 — 무리 5마리 이상일 때 아이템 1개 무작위 탈취 시도',
+    combat: {
+      hp: 300, atk: 30, mp: 0, ac: 8,
+      note: '무리로 등장(3~8마리). 단독 위협도 낮음',
+      skills: [
+        { name: '집단 갉기', type: '공격', cost: { mp: 0 }, effect: '단일 대상 20 피해' },
+      ],
+    },
+    drops: [
+      { id: 'terra_grass',  prob: 0.50, qty_min: 1, qty_max: 2 },
+      { id: 'liferoot',     prob: 0.20, qty_min: 1, qty_max: 1 },
+    ],
+  },
+  {
+    id: 'snow_fox',
+    name: { ko: '설 여우', en: 'Snow Fox' },
+    icon: '🦊',
+    threat: 1,
+    level: 2, level_min: 1, level_max: 3,
+    habitat: '설원 외곽',
+    desc: '흰 털을 가진 민첩한 여우. 공격적이지 않지만 탐사대의 식량을 노리며 접근한다. Wuxia 캐릭터는 경공 판정으로 포획 가능.',
+    usage: '초반 이벤트 — 포획 성공 시 모피 재료 획득. 무협 캐릭터 전용 경공 판정',
+    key_stats: ['DEX', 'WIS'],
+    special: '순간 도주 — DEX 판정 실패 시 전투 전에 도망',
+    combat: {
+      hp: 500, atk: 40, mp: 50, ac: 11,
+      skills: [
+        { name: '물기',     type: '공격', cost: { mp: 0  }, effect: '단일 대상 35 피해' },
+        { name: '모래 뿌리기', type: '디버프', cost: { mp: 20 }, effect: '대상 명중률 -15%, 2턴 지속' },
+      ],
+    },
+    drops: [
+      { id: 'aurora_pelt',  prob: 0.55, qty_min: 1, qty_max: 1 },
+      { id: 'snowflake_herb', prob: 0.35, qty_min: 1, qty_max: 2 },
+    ],
+  },
+  {
+    id: 'frost_bat',
+    name: { ko: '빙결 박쥐', en: 'Frost Bat' },
+    icon: '🦇',
+    threat: 1,
+    level: 2, level_min: 1, level_max: 3,
+    habitat: '지하 광산·빙하 동굴',
+    desc: '광산과 빙하 동굴에 서식하는 박쥐. 채굴 소음에 반응해 무리로 공격한다. 채광 중 자주 조우.',
+    usage: '채광 방해 이벤트 — 광산 탐사 중 필수 조우. Mechanica 캐릭터 초음파 장비로 격퇴 가능',
+    key_stats: ['DEX', 'CON'],
+    special: '초음파 교란 — WIS 판정 실패 시 1턴 방향감각 상실',
+    combat: {
+      hp: 400, atk: 35, mp: 80, ac: 9,
+      note: '무리로 등장. 광산·동굴 내부에서만 조우',
+      skills: [
+        { name: '냉기 물기',   type: '공격',   cost: { mp: 20 }, effect: '단일 대상 40 피해 + 1턴 빙결' },
+        { name: '초음파 비명', type: '디버프', cost: { mp: 30 }, effect: '3m 내 적 WIS 판정 DC+2, 2턴 지속' },
+      ],
+    },
+    drops: [
+      { id: 'frost_crystal', prob: 0.40, qty_min: 1, qty_max: 1 },
+      { id: 'frost_moss',    prob: 0.45, qty_min: 1, qty_max: 2 },
+    ],
+  },
+  {
+    id: 'magma_crab',
+    name: { ko: '용암 게', en: 'Magma Crab' },
+    icon: '🦀',
+    threat: 2,
+    level: 3, level_min: 2, level_max: 4,
+    habitat: '화산대 용암 근처',
+    desc: '화산대 용암 근처에 서식하는 갑각류. 껍데기가 굳은 용암으로 이루어져 물리 방어가 높고, 화염 속성 피해를 반사한다.',
+    usage: '화산대 탐사 방해 이벤트 — 화염 계열 스킬 사용 시 반사 주의',
+    key_stats: ['STR', 'CON'],
+    special: '용암 껍질 — 화염 속성 피해 반사 (20%). 물 계열 스킬에 취약',
+    combat: {
+      hp: 1500, atk: 100, mp: 100, ac: 14,
+      skills: [
+        { name: '집게 강타',   type: '공격', cost: { hp: 10 }, effect: '단일 대상 90 피해' },
+        { name: '용암 분사',   type: '공격', cost: { mp: 30 }, effect: '단일 대상 70 피해 + 화상 디버프 2턴' },
+      ],
+    },
+    drops: [
+      { id: 'volcanic_rock',  prob: 0.65, qty_min: 2, qty_max: 3 },
+      { id: 'lava_core',      prob: 0.20, qty_min: 1, qty_max: 1 },
+      { id: 'obsidian',       prob: 0.15, qty_min: 1, qty_max: 1 },
+    ],
+  },
+  {
+    id: 'mana_wisp',
+    name: { ko: '마나 위습', en: 'Mana Wisp' },
+    icon: '✨',
+    threat: 2,
+    level: 4, level_min: 3, level_max: 5,
+    habitat: '마나 메탈 광맥 주변',
+    desc: '마나 메탈 광맥 주변을 떠도는 에너지 구체. 물리 공격이 거의 통하지 않으며, Arcania 마법사에게는 마나 메탈 위치를 알려주는 신호가 된다.',
+    usage: 'Arcania 전용 이벤트 — 마나 메탈 광맥 위치 탐지 가능. 물리 공격 취약점 없음',
+    key_stats: ['INT', 'WIS'],
+    special: '마나 흡수 — 마법 스킬 사용 시 MP를 10 흡수',
+    combat: {
+      hp: 800, atk: 90, mp: 400, ac: 12,
+      note: '물리 공격 피해 50% 감소. 마법 공격에 표준 피해',
+      skills: [
+        { name: '마나 방출', type: '공격',   cost: { mp: 40 }, effect: '단일 대상 120 피해' },
+        { name: '마나 실드', type: '방어',   cost: { mp: 50 }, effect: '8초간 받는 피해 30% 감소' },
+      ],
+    },
+    drops: [
+      { id: 'mana_shard',     prob: 0.60, qty_min: 1, qty_max: 2 },
+      { id: 'aurora_crystal', prob: 0.20, qty_min: 1, qty_max: 1 },
+    ],
+  },
+  {
+    id: 'psychic_moth',
+    name: { ko: '초능력 나방', en: 'Psychic Moth' },
+    icon: '🦋',
+    threat: 2,
+    level: 4, level_min: 3, level_max: 5,
+    habitat: '오로라 지대 심부',
+    desc: '오로라 빛을 날개에 담은 나방. 날갯짓으로 환각을 일으킨다. Psychia 초능력자에게는 정신력 수련 파트너가 될 수 있다.',
+    usage: 'Psychia 전용 교감 이벤트 — 교감 성공 시 WIS +2 임시 버프. 기타 대륙은 환각 디버프 조심',
+    key_stats: ['WIS', 'CHA'],
+    special: '오로라 인분 — 날갯짓 시 3m 내 적에게 환각 상태 (1턴)',
+    combat: {
+      hp: 900, atk: 70, mp: 350, ac: 10,
+      skills: [
+        { name: '환각 날갯짓', type: '디버프', cost: { mp: 40 }, effect: '3m 내 적 1턴 환각(선택지 랜덤 변경)' },
+        { name: '정신 파동',   type: '공격',   cost: { mp: 30 }, effect: '단일 대상 100 피해' },
+      ],
+    },
+    drops: [
+      { id: 'aurora_petal',   prob: 0.50, qty_min: 1, qty_max: 2 },
+      { id: 'spirit_stone',   prob: 0.20, qty_min: 1, qty_max: 1 },
+    ],
+  },
+  {
+    id: 'shadow_lynx',
+    name: { ko: '그림자 스라소니', en: 'Shadow Lynx' },
+    icon: '🐈',
+    threat: 3,
+    level: 5, level_min: 4, level_max: 6,
+    habitat: '테라 노바 삼림·협곡',
+    desc: '그림자 속에서 이동하는 날렵한 대형 고양이. 기습 공격이 특기로, 은신 중인 도적형 캐릭터와는 서로를 인식한다.',
+    usage: 'Rogue 계열 전용 이벤트 — 기습 당하거나 역으로 기습 가능. 포획 시 동료 후보',
+    key_stats: ['DEX', 'STR'],
+    special: '그림자 도약 — 매 전투 첫 번째 공격은 반드시 기습(방어 무시)',
+    combat: {
+      hp: 2200, atk: 160, mp: 200, ac: 14,
+      skills: [
+        { name: '그림자 급습', type: '공격', cost: { mp: 30 }, effect: '단일 대상 180 피해 (첫 턴 방어 무시)' },
+        { name: '발톱 연격',   type: '공격', cost: { hp: 15 }, effect: '단일 대상 120 피해 × 2회' },
+      ],
+    },
+    drops: [
+      { id: 'aurora_pelt',    prob: 0.55, qty_min: 1, qty_max: 2 },
+      { id: 'obsidian',       prob: 0.20, qty_min: 1, qty_max: 1 },
+    ],
+  },
+  {
+    id: 'volcanic_serpent',
+    name: { ko: '화산 뱀', en: 'Volcanic Serpent' },
+    icon: '🐍',
+    threat: 3,
+    level: 6, level_min: 5, level_max: 7,
+    habitat: '화산대 용암 지층',
+    desc: '화산 지층 용암 속을 헤엄치는 거대 뱀. 독니에서 화산재 독을 뿜으며, 지하 광산 깊은 곳에서 갑자기 출현한다.',
+    usage: '채광 심층 조우 이벤트 — 광산 깊이 파고들수록 출현 확률 상승',
+    key_stats: ['STR', 'CON'],
+    special: '화산재 독 — 물린 대상 3턴간 HP 20씩 감소',
+    combat: {
+      hp: 2800, atk: 190, mp: 150, ac: 13,
+      skills: [
+        { name: '독니 공격',   type: '공격',   cost: { mp: 20 }, effect: '단일 대상 150 피해 + 독 3턴(20HP/턴)' },
+        { name: '화산 분기',   type: '공격',   cost: { mp: 40 }, effect: '전방 3m 범위 화염 피해 120' },
+      ],
+    },
+    drops: [
+      { id: 'volcanic_ash_herb', prob: 0.45, qty_min: 1, qty_max: 2 },
+      { id: 'obsidian',          prob: 0.30, qty_min: 1, qty_max: 1 },
+      { id: 'lava_core',         prob: 0.15, qty_min: 1, qty_max: 1 },
+    ],
+  },
+  {
+    id: 'stone_golem',
+    name: { ko: '암석 골렘', en: 'Stone Golem' },
+    icon: '🪨',
+    threat: 3,
+    level: 7, level_min: 6, level_max: 8,
+    habitat: '고대 광산·화석 지대',
+    desc: '고대 문명이 제작한 것으로 추정되는 암석 자동 인형. 채굴 구역에 침입자를 경고하며 방어한다. Mechanica 기술자는 제어 코드를 해킹 가능.',
+    usage: 'Mechanica 전용 해킹 이벤트 — 해킹 성공 시 임시 아군. 실패 시 강화 모드 돌입',
+    key_stats: ['STR', 'CON'],
+    special: '고대 방어 프로토콜 — 해킹 시도 실패 시 ATK +30% 강화 모드',
+    combat: {
+      hp: 3800, atk: 210, mp: 100, ac: 16,
+      skills: [
+        { name: '암석 주먹',   type: '공격', cost: { hp: 20 }, effect: '단일 대상 190 피해' },
+        { name: '방어 강화',   type: '방어', cost: { mp: 50 }, effect: '10초간 방어력 +35%' },
+      ],
+    },
+    drops: [
+      { id: 'fossil_fragment', prob: 0.50, qty_min: 1, qty_max: 2 },
+      { id: 'ancient_ore',     prob: 0.25, qty_min: 1, qty_max: 1 },
+      { id: 'ancient_bark',    prob: 0.20, qty_min: 1, qty_max: 1 },
+    ],
+  },
+  {
+    id: 'ancient_guardian',
+    name: { ko: '고대 수호자', en: 'Ancient Guardian' },
+    icon: '⚔️',
+    threat: 4,
+    level: 8, level_min: 7, level_max: 9,
+    habitat: '테라 노바 고대 유적',
+    desc: '테라 노바 고대 문명의 유적을 지키는 거대한 인형. 네 대륙의 어떤 기술도 결합된 존재로, 마법·기계·내공·초능력 모두 부분적으로 흡수한다.',
+    usage: '고대 유적 탐사 이벤트 — 대륙별 고유 약점 공략 시 보상 아이템 획득',
+    key_stats: ['STR', 'INT', 'WIS'],
+    special: '사원소 흡수 — 마법·기술·내공·초능력 계열 스킬 피해 20% 감소. 물리 공격에 정상 피해',
+    combat: {
+      hp: 4200, atk: 240, mp: 600, ac: 15,
+      skills: [
+        { name: '고대 격파',   type: '공격',   cost: { hp: 30 }, effect: '단일 대상 220 피해' },
+        { name: '원소 흡수',   type: '버프',   cost: { mp: 60 }, effect: '8초간 마법·기술 계열 피해 50% 흡수' },
+        { name: '고대의 포효', type: '군중제어', cost: { mp: 80 }, effect: '5m 내 적 2턴 행동 지연' },
+      ],
+    },
+    drops: [
+      { id: 'ancient_ore',     prob: 0.40, qty_min: 1, qty_max: 2 },
+      { id: 'fossil_mineral',  prob: 0.35, qty_min: 1, qty_max: 2 },
+      { id: 'spirit_stone',    prob: 0.25, qty_min: 1, qty_max: 1 },
+      { id: 'ancient_bark',    prob: 0.20, qty_min: 1, qty_max: 1 },
+    ],
   },
 ];
 

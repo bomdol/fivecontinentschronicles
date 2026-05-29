@@ -46,6 +46,7 @@ function migrate(data) {
     gs.companions   ??= [];
     gs.status       ??= [];
     gs.mp           ??= gs.maxMp ?? 0;
+    gs.materials    ??= {};
     data.gameState   = gs;
     data.saveVersion = 1;
   }
@@ -64,6 +65,8 @@ export async function saveGame(uid, gameId, char, history, chapterLabel) {
       hp: char.hp, maxHp: char.maxHp, mp: char.mp, maxMp: char.maxMp,
       level: char.level, xp: char.xp, status: char.status, companions: char.companions,
       storyChapter: char.storyChapter, chapterTurns: char.chapterTurns,
+      materials: char.materials ?? {},
+      activeBuffs: char.activeBuffs ?? [],
     },
     chapter: chapterLabel,
     history: history.slice(-10),
