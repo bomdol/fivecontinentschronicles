@@ -1,0 +1,87 @@
+# generated: 2026-05-20
+# last_updated: 2026-05-20
+# project: 5continentschronicles
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-05-20
+last_updated: 2026-05-20
+project: 5continentschronicles
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # ─── Epic 1: 재료·괴물 데이터 확장 ────────────────────────────────────
+  epic-1: in-progress
+  1-1-재료-데이터-파일-생성: done
+  1-2-기존-괴물-드랍-테이블-추가: done
+  1-3-신규-괴물-추가: done
+  1-4-채집-채광-이벤트-데이터-추가: done
+  epic-1-retrospective: optional
+
+  # ─── Epic 2: 아이템 슬롯·등급·레시피 시스템 ──────────────────────────
+  epic-2: in-progress
+  2-1-아이템-슬롯-구조-확장: done
+  2-2-등급별-아이템-테이블: done
+  2-3-제작-레시피-테이블: done
+  2-4-gamestate-materials-인벤토리: done
+  epic-2-retrospective: optional
+
+  # ─── Epic 3: AI 제작 힌트 및 이벤트 처리 ─────────────────────────────
+  epic-3: in-progress
+  3-1-한국어-조사-유틸리티: done
+  3-2-buildcraftinghints-구현: done
+  3-3-전투-후-재료-드랍-처리: done
+  3-4-채집-채광-이벤트-처리: done
+  epic-3-retrospective: optional
+
+  # ─── Epic 4: 전초기지 제작 UI ─────────────────────────────────────────
+  epic-4: done
+  4-1-재료-인벤토리-ui: done
+  4-2-전초기지-제작-화면: done
+  4-3-제작-실행-로직: done
+  epic-4-retrospective: optional
+
+  # ─── Epic 5: 전투 엔진 고도화 · 동료 제어 · 모바일 UI ────────────────
+  epic-5: done
+  5-1-동료-ai-수동-전환: done
+  5-2-npc-서술-10초-카운트다운: done
+  5-3-flatdamage-레벨-배율-수정: done
+  5-4-savecheck-onFailEffect-엔진-처리: done
+  5-5-동료-차례-누락-버그-수정: done
+  5-6-confused-상태-엔진-피해-처리: done
+  5-7-적-수-레벨-제한-공식: done
+  5-8-유닛별-hp바-실시간-업데이트: done
+  5-9-모바일-반응형-ui: done
+  epic-5-retrospective: optional
