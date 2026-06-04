@@ -1759,8 +1759,8 @@ export default function GameplayScreen({ charData, onRestart }) {
         </div>
       )}
 
-      {/* 임시 AI 통신 로그 패널 */}
-      <div className="debug-panel">
+      {/* AI 통신 로그 패널 — 개발 모드에서만 표시 */}
+      {import.meta.env.DEV && <div className="debug-panel">
         <div className="debug-header">
           <span>AI 통신 로그</span>
           <button className="debug-clear" onClick={() => setDebugLog([])}>지우기</button>
@@ -1777,7 +1777,7 @@ export default function GameplayScreen({ charData, onRestart }) {
           ))}
           {debugLog.length === 0 && <div className="debug-empty">대화 없음</div>}
         </div>
-      </div>
+      </div>}
     </div>
   );
 }
