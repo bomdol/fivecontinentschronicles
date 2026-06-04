@@ -589,8 +589,9 @@ html,body{background:#0a0a08;min-height:100vh;height:100%}
 } /* end @media mobile */
 
 /* ═══════════════════════════════════════════════════════════════════
-   데스크톱 전용 (> 600px): 디버그 패널 + gp-root margin 유지
+   데스크톱 전용 (> 600px)
    ═══════════════════════════════════════════════════════════════════ */
 @media screen and (min-width:601px){
-  .gp-root{margin-right:388px;padding:16px}
+  .gp-root{padding:16px}
+  .gp-root.gp-dev{margin-right:388px}
 }

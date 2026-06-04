@@ -1360,7 +1360,7 @@ export default function GameplayScreen({ charData, onRestart }) {
   const mpPct = char.maxMp > 0 ? Math.round((char.mp / char.maxMp) * 100) : 0;
 
   return (
-    <div className="gp-root">
+    <div className={`gp-root${import.meta.env.DEV ? ' gp-dev' : ''}`}>
 
       {/* API 키 설정 */}
       {showApiSetup && (
